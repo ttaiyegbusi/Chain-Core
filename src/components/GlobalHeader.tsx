@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, MessageSquare, ChevronDown } from "lucide-react";
+import { Search, MessageSquareMore, ChevronDown } from "lucide-react";
 import { Breadcrumbs, Crumb } from "./Common";
 import { useCoreAI } from "./CoreAI/CoreAIProvider";
 
@@ -14,7 +14,8 @@ export default function GlobalHeader({
   const { open } = useCoreAI();
 
   return (
-    <header className="flex h-[70px] items-center justify-between border-b border-border pl-10 pr-6">
+    <header className="flex h-[70px] items-center justify-between border-b border-border bg-white pl-10 pr-10">
+      {/* Left: title + breadcrumbs (unchanged from the per-page header) */}
       <div>
         <h1 className="text-lg font-semibold text-text-primary">{title}</h1>
         <div className="mt-0.5">
@@ -22,51 +23,43 @@ export default function GlobalHeader({
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <AskCoreAIButton onClick={open} />
+      {/* Right: Ask Core AI + plain icons + plain text profile */}
+      <div className="flex items-center gap-5">
+        <button
+          type="button"
+          onClick={open}
+          className="focus-ring inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+        >
+          <Sparkle />
+          Ask Core AI
+        </button>
 
         <button
           type="button"
           aria-label="Search"
-          className="focus-ring flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-text-secondary transition-colors hover:bg-border"
+          className="focus-ring text-text-secondary transition-colors hover:text-text-primary"
         >
-          <Search size={18} aria-hidden />
+          <Search size={20} strokeWidth={1.8} aria-hidden />
         </button>
 
         <button
           type="button"
           aria-label="Messages"
-          className="focus-ring flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-text-secondary transition-colors hover:bg-border"
+          className="focus-ring text-text-secondary transition-colors hover:text-text-primary"
         >
-          <MessageSquare size={18} aria-hidden />
+          <MessageSquareMore size={20} strokeWidth={1.8} aria-hidden />
         </button>
 
         <button
           type="button"
           aria-label="User profile"
-          className="focus-ring flex h-9 items-center gap-2 rounded-full bg-surface-muted px-3 text-sm text-text-primary transition-colors hover:bg-border"
+          className="focus-ring flex items-center gap-1 text-sm text-text-primary transition-colors hover:text-text-secondary"
         >
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[11px] font-medium text-white">
-            T
-          </span>
           <span className="font-medium">Temitope A.</span>
-          <ChevronDown size={14} className="text-text-secondary" aria-hidden />
+          <ChevronDown size={16} className="text-text-secondary" aria-hidden />
         </button>
       </div>
     </header>
-  );
-}
-
-function AskCoreAIButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="focus-ring inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
-    >
-      <Sparkle />
-      Ask Core AI
-    </button>
   );
 }
 

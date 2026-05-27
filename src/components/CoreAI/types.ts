@@ -284,8 +284,7 @@ export function buildUserMessage(text: string): UserMessage {
 export const SUGGESTED_PROMPTS: string[] = [
   "Add Journal Entry",
   "View Balance",
-  "View Revenue Chart",
-  "View Asset Allocation",
+  "Create New Product",
   "View Clients",
   "Update user role",
 ];
