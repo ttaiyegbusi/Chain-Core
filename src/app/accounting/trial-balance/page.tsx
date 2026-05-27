@@ -5,6 +5,7 @@ import { Search, SlidersHorizontal, Upload } from "lucide-react";
 import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
 import { Breadcrumbs } from "@/components/Common";
+import GlobalHeader from "@/components/GlobalHeader";
 import TrialBalanceTable from "@/components/TrialBalanceTable";
 import BalanceSheetFilterModal, {
   BSFilters,
@@ -74,22 +75,14 @@ export default function TrialBalancePage() {
       <AccountingSidebar menuLabel="SUB MENU" />
 
       <main className="ml-[316px]">
-        <header className="flex h-[70px] items-center justify-between border-b border-border pl-10 pr-11">
-          <div>
-            <h1 className="text-lg font-semibold text-text-primary">
-              Accounting
-            </h1>
-            <div className="mt-0.5">
-              <Breadcrumbs
-                items={[
+        <GlobalHeader
+          title="Accounting"
+          crumbs={[
                   { label: "Dashboard", href: "/" },
                   { label: "Accounting", href: "/accounting/charts-of-account" },
                   { label: "TrialBalance Sheet" },
                 ]}
-              />
-            </div>
-          </div>
-        </header>
+        />
 
         <section className="px-10 pb-10 pt-6">
           <h2 className="text-xl font-semibold text-text-primary">

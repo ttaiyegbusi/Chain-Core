@@ -3,6 +3,7 @@
 import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
 import { Breadcrumbs } from "@/components/Common";
+import GlobalHeader from "@/components/GlobalHeader";
 
 export default function IncomeExpensesPage() {
   return (
@@ -10,20 +11,14 @@ export default function IncomeExpensesPage() {
       <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
       <main className="ml-[316px]">
-        <header className="flex h-[70px] items-center border-b border-border pl-10 pr-11">
-          <div>
-            <h1 className="text-lg font-semibold text-text-primary">Accounting</h1>
-            <div className="mt-0.5">
-              <Breadcrumbs
-                items={[
+        <GlobalHeader
+          title="Accounting"
+          crumbs={[
                   { label: "Dashboard", href: "/" },
                   { label: "Accounting", href: "/accounting/charts-of-account" },
                   { label: "Income & Expenses" },
                 ]}
-              />
-            </div>
-          </div>
-        </header>
+        />
         <section className="px-10 pt-6">
           <h2 className="text-xl font-semibold text-text-primary">
             Income &amp; Expenses

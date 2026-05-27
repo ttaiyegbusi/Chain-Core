@@ -4,7 +4,8 @@ import { useMemo, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
-import { Breadcrumbs, AskCoreAIButton } from "@/components/Common";
+import { Breadcrumbs } from "@/components/Common";
+import GlobalHeader from "@/components/GlobalHeader";
 import AccountCategoryTabs from "@/components/AccountCategoryTabs";
 import ChartsToolbar from "@/components/ChartsToolbar";
 import ChartOfAccountsTable from "@/components/ChartOfAccountsTable";
@@ -123,23 +124,14 @@ function ChartsOfAccountInner() {
       {/* Content offset: 66px rail + 250px sidebar */}
       <main className="ml-[316px]">
         {/* Header */}
-        <header className="flex h-[70px] items-center justify-between border-b border-border pl-10 pr-11">
-          <div>
-            <h1 className="text-lg font-semibold text-text-primary">
-              Accounting
-            </h1>
-            <div className="mt-0.5">
-              <Breadcrumbs
-                items={[
-                  { label: "Dashboard", href: "/" },
-                  { label: "Accounting", href: "/accounting/charts-of-account" },
-                  { label: "Charts of Account" },
-                ]}
-              />
-            </div>
-          </div>
-          <AskCoreAIButton />
-        </header>
+        <GlobalHeader
+          title="Accounting"
+          crumbs={[
+            { label: "Dashboard", href: "/" },
+            { label: "Accounting", href: "/accounting/charts-of-account" },
+            { label: "Charts of Account" },
+          ]}
+        />
 
         {/* Tabs */}
         <AccountCategoryTabs active={activeTab} onChange={setTab} />

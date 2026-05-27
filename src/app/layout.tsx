@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CoreAIProvider } from "@/components/CoreAI/CoreAIProvider";
+import CoreAIModal from "@/components/CoreAI/CoreAIModal";
 
 export const metadata: Metadata = {
   title: "ChainCore — Accounting",
@@ -13,7 +15,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <CoreAIProvider>
+          {children}
+          <CoreAIModal />
+        </CoreAIProvider>
+      </body>
     </html>
   );
 }
