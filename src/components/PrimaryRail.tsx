@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Logo from "./Logo";
 
 interface RailIcon {
   key: string;
@@ -55,9 +56,7 @@ export default function PrimaryRail() {
     >
       {/* Logo */}
       <div className="mt-5 mb-4 flex h-[30px] w-[30px] items-center justify-center">
-        <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-primary">
-          <Spinner />
-        </div>
+        <Logo size={30} />
       </div>
 
       <nav className="flex flex-1 flex-col items-center gap-2">
@@ -107,27 +106,5 @@ export default function PrimaryRail() {
         })}
       </nav>
     </aside>
-  );
-}
-
-// Simple radial "loading spinner"-style logo mark to echo the screenshot glyph.
-function Spinner() {
-  const bars = Array.from({ length: 12 });
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
-      {bars.map((_, i) => (
-        <rect
-          key={i}
-          x="11"
-          y="2"
-          width="2"
-          height="6"
-          rx="1"
-          fill="white"
-          opacity={0.35 + (i / bars.length) * 0.65}
-          transform={`rotate(${(360 / bars.length) * i} 12 12)`}
-        />
-      ))}
-    </svg>
   );
 }

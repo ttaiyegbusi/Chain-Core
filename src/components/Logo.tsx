@@ -1,0 +1,88 @@
+export default function Logo({ size = 28 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 28 28"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <g filter="url(#cc_filter0_i)">
+        <rect width="28" height="28" rx="14" fill="#375DFB" />
+        <rect width="28" height="28" rx="14" fill="white" fillOpacity="0.1" />
+        <path
+          d="M13.0723 18.874C13.3755 18.9339 13.6885 18.9668 14.0088 18.9668C14.2214 18.9668 14.4312 18.9526 14.6367 18.9258L13.1484 24.458L11.6768 24.0654L13.0723 18.874ZM18.4922 23.4844L17.0205 23.8779L15.624 18.6875C16.1261 18.5086 16.5893 18.2496 16.998 17.9248L18.4922 23.4844ZM10.7979 17.7363C11.1836 18.083 11.6263 18.367 12.1104 18.5752L8.03223 22.6387L6.95508 21.5654L10.7979 17.7363ZM22.6318 19.9795L21.5547 21.0527L17.7119 17.2246C18.0454 16.8215 18.3132 16.3628 18.501 15.8643L22.6318 19.9795ZM9.43457 15.6289C9.59409 16.131 9.834 16.5969 10.1396 17.0117L4.51465 18.5137L4.12012 17.0479L9.43457 15.6289ZM24.457 14.8818L24.0635 16.3477L18.748 14.9277C18.7861 14.685 18.8076 14.4366 18.8076 14.1836C18.8076 13.9005 18.7817 13.6231 18.7344 13.3535L24.457 14.8818ZM9.32031 13.1611C9.24842 13.4904 9.20996 13.8328 9.20996 14.1836C9.20998 14.3614 9.22024 14.537 9.23926 14.71L3.53809 13.1875L3.93164 11.7227L9.32031 13.1611ZM23.875 11.0215L18.4854 12.4609C18.2926 11.9634 18.0203 11.5055 17.6816 11.1045L23.4805 9.55664L23.875 11.0215ZM10.4326 10.9932C10.086 11.3791 9.80094 11.8214 9.59375 12.3047L5.36426 8.08887L6.44141 7.0166L10.4326 10.9932ZM21.041 6.50391L17.0488 10.4814C16.643 10.1499 16.1815 9.8838 15.6807 9.69824L19.9639 5.43066L21.041 6.50391ZM12.4463 9.65918C11.9436 9.83172 11.4789 10.0855 11.0674 10.4043L9.50391 4.58496L10.9766 4.19238L12.4463 9.65918ZM16.3877 3.93066L14.8955 9.48242C14.6081 9.42889 14.3117 9.39941 14.0088 9.39941C13.7771 9.39943 13.5491 9.4156 13.3262 9.44727L14.916 3.53711L16.3877 3.93066Z"
+          fill="url(#cc_paint0)"
+          fillOpacity="0.88"
+          stroke="url(#cc_paint1)"
+          strokeWidth="0.7"
+        />
+      </g>
+      <defs>
+        <filter
+          id="cc_filter0_i"
+          x="0"
+          y="-2.8"
+          width="28"
+          height="30.8"
+          filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB"
+        >
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feBlend
+            mode="normal"
+            in="SourceGraphic"
+            in2="BackgroundImageFix"
+            result="shape"
+          />
+          <feColorMatrix
+            in="SourceAlpha"
+            type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+            result="hardAlpha"
+          />
+          <feOffset dy="-2.8" />
+          <feGaussianBlur stdDeviation="2.8" />
+          <feComposite
+            in2="hardAlpha"
+            operator="arithmetic"
+            k2="-1"
+            k3="1"
+          />
+          <feColorMatrix
+            type="matrix"
+            values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.64 0"
+          />
+          <feBlend
+            mode="normal"
+            in2="shape"
+            result="effect1_innerShadow"
+          />
+        </filter>
+        <linearGradient
+          id="cc_paint0"
+          x1="13.9983"
+          y1="3.10937"
+          x2="13.9983"
+          y2="36.1322"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0.313079" stopColor="white" />
+          <stop offset="1" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient
+          id="cc_paint1"
+          x1="52.4381"
+          y1="-49.7479"
+          x2="-11.6376"
+          y2="2.23308"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop stopColor="white" />
+          <stop offset="1" stopColor="white" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
