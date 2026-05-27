@@ -11,6 +11,7 @@ import {
   FolderClosed,
   Euro,
   ChevronDown,
+  ArrowUpFromLine,
 } from "lucide-react";
 
 interface MenuItem {
@@ -21,9 +22,10 @@ interface MenuItem {
 
 const MENU: MenuItem[] = [
   { label: "Charts of Account", icon: BookOpen, href: "/accounting/charts-of-account" },
+  { label: "Income & Expenses", icon: ArrowUpFromLine, href: "/accounting/income-expenses" },
   { label: "Balance Sheet", icon: Monitor, href: "/accounting/balance-sheet" },
   { label: "Trial Balance", icon: PieChart, href: "/accounting/trial-balance" },
-  { label: "Journal", icon: BarChart3, href: "/accounting/journal" },
+  { label: "Journal Entries", icon: BarChart3, href: "/accounting/journal" },
   { label: "General Ledger Report", icon: LineChart, href: "/accounting/general-ledger-report" },
   { label: "Provisional Report", icon: FolderClosed, href: "/accounting/provisional-report" },
 ];
