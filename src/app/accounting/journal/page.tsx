@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Search, SlidersHorizontal, Upload, Plus } from "lucide-react";
 import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
@@ -17,6 +18,7 @@ import {
 import { JOURNAL_ENTRIES } from "@/data/journal";
 
 export default function JournalPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<JournalFilters>(DEFAULT_JOURNAL_FILTERS);
@@ -100,6 +102,7 @@ export default function JournalPage() {
               </button>
               <button
                 type="button"
+                onClick={() => router.push("/accounting/journal/create")}
                 className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-primary bg-white px-4 text-sm font-medium text-primary transition-colors hover:bg-primary/5"
               >
                 Manual Journal

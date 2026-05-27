@@ -7,10 +7,14 @@ export default function SuccessModal({
   open,
   onClose,
   onOkay,
+  title = "New General Ledger Created",
+  body = "You have successfully created a new general ledger. Go to the Charts of Account section to see your new ledger.",
 }: {
   open: boolean;
   onClose: () => void;
   onOkay: () => void;
+  title?: string;
+  body?: string;
 }) {
   const okayRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -81,12 +85,11 @@ export default function SuccessModal({
             id="success-title"
             className="text-2xl font-bold text-text-primary"
           >
-            New General Ledger Created
+            {title}
           </h2>
 
           <p className="mt-3 px-2 text-sm leading-relaxed text-text-secondary">
-            You have successfully created a new general ledger. Go to the Charts
-            of Account section to see your new ledger.
+            {body}
           </p>
 
           <button
