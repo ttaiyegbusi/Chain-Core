@@ -33,8 +33,8 @@ export default function Composer({
           <span>Ask about anything</span>
         </div>
 
-        {/* Inner input row: no stroke, same F7F7F7 background */}
-        <div className="flex items-center gap-2 rounded-xl bg-[#F7F7F7] px-2 py-2">
+        {/* Inner input row: white container, no stroke */}
+        <div className="flex items-center gap-2 rounded-xl bg-white px-2 py-2">
           <button
             type="button"
             aria-label="Attach file"

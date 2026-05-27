@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MoreVertical, Maximize2, Minimize2, X } from "lucide-react";
 import { useCoreAI } from "./CoreAIProvider";
 import Welcome from "./Welcome";
@@ -16,8 +16,8 @@ import { AssistantMessage } from "./types";
  * ChainCore page. The page remains visible and interactive on the left —
  * no dim, no backdrop. Top of the panel sits below the global header.
  *
- * In "modal-attachments" mode an attachments column is appended on the
- * right, widening the floating panel.
+ * Open/close uses an Apple-style spring animation: subtle scale + opacity
+ * + slight slide-in from the right.
  */
 export default function CoreAIPanel() {
   const {
@@ -29,6 +29,21 @@ export default function CoreAIPanel() {
     send,
     hideAttachments,
   } = useCoreAI();
+
+  // Keep the panel mounted while the exit animation is playing.
+  const [mounted, setMounted] = useState(false);
+  const [phase, setPhase] = useState<"enter" | "exit">("enter");
+
+  useEffect(() => {
+    if (isOpen) {
+      setMounted(true);
+      setPhase("enter");
+    } else if (mounted) {
+      setPhase("exit");
+      const t = setTimeout(() => setMounted(false), 200);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen, mounted]);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const conversationRef = useRef<HTMLDivElement>(null);
@@ -50,7 +65,7 @@ export default function CoreAIPanel() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, isOpen]);
 
-  if (!isOpen) return null;
+  if (!mounted) return null;
 
   const lastAssistant = [...messages]
     .reverse()
@@ -61,9 +76,6 @@ export default function CoreAIPanel() {
 
   const hasConversation = messages.length > 0;
 
-  // Width: ~680px standard, ~1060px when attachments column is open.
-  // Positioned fixed on the right, below the 70px global header, with
-  // a small margin from the right edge and bottom.
   return (
     <div
       ref={cardRef}
@@ -74,6 +86,7 @@ export default function CoreAIPanel() {
         "fixed right-5 top-[86px] bottom-5 z-40 flex overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.18)] ring-1 ring-border",
         showingAttachments ? "w-[830px]" : "w-[450px]",
         "max-w-[calc(100vw-40px)]",
+        phase === "enter" ? "coreai-panel-enter" : "coreai-panel-exit",
       ].join(" ")}
     >
       {/* Main conversation column */}
@@ -82,7 +95,7 @@ export default function CoreAIPanel() {
         <div className="flex h-[64px] items-center justify-between border-b border-border px-6">
           <h2
             id="coreai-title"
-            className="text-base font-semibold text-text-primary"
+            className="text-sm font-semibold text-text-primary"
           >
             Core Ai
           </h2>
