@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Plus, ArrowUp } from "lucide-react";
+import { Plus, ArrowUp, ChevronDown } from "lucide-react";
+import Logo from "@/components/Logo";
 
 export default function Composer({
   onSend,
@@ -21,19 +22,23 @@ export default function Composer({
 
   return (
     <div className="px-6 pb-5">
-      <div className="rounded-2xl bg-surface-muted p-3">
+      {/* Outer container: bg F7F7F7, padding L4 R4 T8 B4 */}
+      <div
+        className="rounded-2xl bg-[#F7F7F7]"
+        style={{ paddingLeft: 4, paddingRight: 4, paddingTop: 8, paddingBottom: 4 }}
+      >
         {/* Label row */}
         <div className="mb-2 flex items-center gap-1.5 px-2 text-xs text-text-secondary">
-          <Sparkle />
+          <Logo size={14} />
           <span>Ask about anything</span>
         </div>
 
-        {/* Input row */}
-        <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2.5 ring-1 ring-border">
+        {/* Inner input row: no stroke, same F7F7F7 background */}
+        <div className="flex items-center gap-2 rounded-xl bg-[#F7F7F7] px-2 py-2">
           <button
             type="button"
             aria-label="Attach file"
-            className="focus-ring flex h-7 w-7 items-center justify-center rounded-md text-text-secondary hover:bg-surface-muted"
+            className="focus-ring flex h-7 w-7 items-center justify-center rounded-md text-text-secondary hover:bg-[#ECECEC]"
           >
             <Plus size={16} aria-hidden />
           </button>
@@ -54,37 +59,27 @@ export default function Composer({
             className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
           />
 
+          {/* Think mode pill */}
+          <button
+            type="button"
+            aria-label="Reasoning mode"
+            className="focus-ring flex items-center gap-1 rounded-md px-2 py-1 text-xs text-text-secondary hover:bg-[#ECECEC]"
+          >
+            Think
+            <ChevronDown size={12} aria-hidden />
+          </button>
+
           <button
             type="button"
             onClick={submit}
             aria-label="Send message"
             disabled={!value.trim()}
-            className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary-hover disabled:bg-border-strong disabled:text-text-muted"
+            className="focus-ring flex h-7 w-7 items-center justify-center rounded-full bg-white text-text-secondary ring-1 ring-border-strong transition-colors hover:bg-surface-muted disabled:opacity-60"
           >
-            <ArrowUp size={16} aria-hidden />
+            <ArrowUp size={14} aria-hidden />
           </button>
         </div>
       </div>
     </div>
-  );
-}
-
-function Sparkle() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <rect
-          key={i}
-          x="11"
-          y="3"
-          width="2"
-          height="5"
-          rx="1"
-          fill="#3157F6"
-          opacity={0.35 + (i / 8) * 0.65}
-          transform={`rotate(${(360 / 8) * i} 12 12)`}
-        />
-      ))}
-    </svg>
   );
 }

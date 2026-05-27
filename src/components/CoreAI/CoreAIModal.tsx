@@ -72,7 +72,7 @@ export default function CoreAIPanel() {
       aria-labelledby="coreai-title"
       className={[
         "fixed right-5 top-[86px] bottom-5 z-40 flex overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.18)] ring-1 ring-border",
-        showingAttachments ? "w-[1060px]" : "w-[680px]",
+        showingAttachments ? "w-[830px]" : "w-[450px]",
         "max-w-[calc(100vw-40px)]",
       ].join(" ")}
     >
@@ -162,7 +162,7 @@ function HeaderIcon({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-surface-muted text-text-secondary hover:bg-border"
+      className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg bg-[#EEF0F2] text-text-secondary hover:bg-[#E2E5E9]"
     >
       {children}
     </button>

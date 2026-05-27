@@ -1,5 +1,6 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import Logo from "@/components/Logo";
 import { SUGGESTED_PROMPTS } from "./types";
 
@@ -10,20 +11,23 @@ export default function Welcome({
 }) {
   return (
     <div className="flex h-full flex-col">
-      {/* Centered greeting */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-        <div className="mb-5 flex h-14 w-14 items-center justify-center">
-          <Logo size={56} />
+      {/* Greeting: sits near the top, not vertically centered */}
+      <div className="flex flex-col items-center px-6 pt-10 text-center">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center">
+          <Logo size={48} />
         </div>
-        <h2 className="text-2xl font-semibold text-text-primary">
+        <h2 className="text-xl font-semibold text-text-primary">
           Hello Temitope!
         </h2>
-        <p className="mt-2 text-sm text-text-secondary">
+        <p className="mt-1 text-sm text-text-secondary">
           This is Core Ai, how can I help today?
         </p>
       </div>
 
-      {/* Suggested Prompts pinned above composer */}
+      {/* Spacer pushes Suggested Prompts to the bottom */}
+      <div className="flex-1" />
+
+      {/* Suggested Prompts pinned just above the composer */}
       <div className="px-6 pb-3">
         <div className="mb-3 text-sm text-text-secondary">
           Suggested Prompts
@@ -34,34 +38,14 @@ export default function Welcome({
               key={p}
               type="button"
               onClick={() => onPromptClick(p)}
-              className="focus-ring inline-flex items-center gap-2 rounded-md bg-surface-muted px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-border"
+              className="focus-ring inline-flex items-center gap-2 rounded-md bg-[#F7F7F7] px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-[#ECECEC]"
             >
-              <Sparkle />
+              <Sparkles size={14} className="text-primary" aria-hidden />
               {p}
             </button>
           ))}
         </div>
       </div>
     </div>
-  );
-}
-
-function Sparkle() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
-      {Array.from({ length: 8 }).map((_, i) => (
-        <rect
-          key={i}
-          x="11"
-          y="3"
-          width="2"
-          height="5"
-          rx="1"
-          fill="#3157F6"
-          opacity={0.35 + (i / 8) * 0.65}
-          transform={`rotate(${(360 / 8) * i} 12 12)`}
-        />
-      ))}
-    </svg>
   );
 }
