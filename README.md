@@ -58,7 +58,7 @@ src/
   app/
     layout.tsx                       # root layout, font, metadata
     page.tsx                         # redirects to charts-of-account
-    globals.css                      # Geist Mono @font-face + base styles
+    globals.css                      # Geist @font-face + base styles
     accounting/charts-of-account/
       page.tsx                       # list screen (Suspense-wrapped)
       create/page.tsx                # create form + success modal
@@ -79,13 +79,13 @@ src/
   lib/
     types.ts                         # ChartAccount model, tabs, formatAmount
 public/
-  fonts/GeistMono.ttf                # variable font (OFL licensed)
+  fonts/Geist.ttf                    # variable font (OFL licensed)
 ```
 
 ## Design tokens
 
 Colours, radii, and typography from the spec are defined in `tailwind.config.ts`
-(e.g. `primary #3157F6`, `border-strong #DDE3EA`, `surface-muted #F5F6F8`). Geist Mono
+(e.g. `primary #3157F6`, `border-strong #DDE3EA`, `surface-muted #F5F6F8`). Geist
 is the single typeface across the whole UI.
 
 ## Notes on the mock data
@@ -95,4 +95,3 @@ rows, every amount `$40,000.00`, and conflicting root codes where INCOME was bot
 `300000` and `400000`). Per the spec's guidance, the mock data uses a clean, unique,
 internally consistent scheme: Asset `100000`, Liability `200000`, Equity `300000`,
 Income `400000`, Expense `500000`.
-# Chain-Core

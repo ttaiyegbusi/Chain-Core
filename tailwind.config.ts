@@ -25,9 +25,9 @@ const config: Config = {
         xl: "16px",
       },
       fontFamily: {
-        // Geist Mono everywhere, per the build decision
-        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
-        sans: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
+        // Geist (proportional sans) everywhere
+        sans: ["var(--font-geist)", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["var(--font-geist)", "system-ui", "-apple-system", "sans-serif"],
       },
       fontSize: {
         xs: "12px",
