@@ -9,6 +9,7 @@ import {
   useState,
   ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 import {
   AssistantMessage,
   AssistantPhase,
@@ -16,6 +17,7 @@ import {
   CoreAIMessage,
   buildAssistantResponse,
   buildUserMessage,
+  getScreenContext,
 } from "./types";
 
 type Mode = "modal" | "modal-attachments";
@@ -36,19 +38,19 @@ interface CoreAIContextValue {
 
 const CoreAIContext = createContext<CoreAIContextValue | null>(null);
 
-// ----- response pacing knobs (ms) -----
-// Balanced for banking: enough status feedback to feel intelligent, but no long theatrical waits.
-const THINKING_LINE_INTERVAL = 260;
+// ----- streaming timing knobs (ms) -----
+const THINKING_LINE_INTERVAL = 260; // balanced, not sluggish
 const THINKING_HOLD = 180;
 const RESEARCHING_HOLD = 420;
-const CHART_REVEAL_DELAY = 260;
-const FOLLOW_UP_REVEAL_DELAY = 220;
+const TYPE_TICK = 8;
+const TYPE_CHARS_PER_TICK = 14
 
 export function CoreAIProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("modal");
   const [messages, setMessages] = useState<CoreAIMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const pathname = usePathname();
 
   // Conversation context for multi-turn follow-ups.
   const ctxRef = useRef<ConversationContext>({ topic: "none" });
@@ -88,9 +90,11 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
       if (!trimmed) return;
 
       const userMsg = buildUserMessage(trimmed);
+      const screen = getScreenContext(pathname || "/");
       const { message: assistantMsg, context } = buildAssistantResponse(
         trimmed,
-        ctxRef.current
+        ctxRef.current,
+        screen
       );
       ctxRef.current = context;
 
@@ -101,7 +105,7 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
       const id = assistantMsg.id;
       const thinkingCount = assistantMsg.thinking.length;
 
-      // 1) Reveal thinking lines quickly, one at a time.
+      // 1) Reveal thinking lines one at a time.
       for (let i = 1; i <= thinkingCount; i++) {
         const t = setTimeout(() => {
           patch(id, (m) => ({ ...m, revealedThinking: i }));
@@ -110,6 +114,8 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
       }
 
       const afterThinking = THINKING_LINE_INTERVAL * thinkingCount + THINKING_HOLD;
+
+      // 2) Move to researching (or straight to answering if no research line).
       const hasResearch = !!assistantMsg.researching;
       const startAnswerAt = hasResearch
         ? afterThinking + RESEARCHING_HOLD
@@ -120,32 +126,33 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
         timers.current.push(t);
       }
 
-      // 2) Reveal the answer in one clean fade, not character-by-character.
-      // This keeps the flow natural without making reports/charts feel slow.
-      const tAnswer = setTimeout(() => {
-        patch(id, (m) => ({
-          ...m,
-          phase: "answering",
-          revealedChars: assistantMsg.answer.length,
-        }));
+      // 3) Begin answering — type the answer out.
+      const tStart = setTimeout(() => {
+        setPhase(id, "answering");
+        const full = assistantMsg.answer.length;
+        const iv = setInterval(() => {
+          let finished = false;
+          patch(id, (m) => {
+            const next = Math.min(m.revealedChars + TYPE_CHARS_PER_TICK, full);
+            if (next >= full) finished = true;
+            return { ...m, revealedChars: next };
+          });
+          if (finished) {
+            clearInterval(iv);
+            // 4) Done — reveal chart/attachments, stop streaming.
+            const tDone = setTimeout(() => {
+              patch(id, (m) => ({ ...m, phase: "done", revealedChars: full }));
+              setIsStreaming(false);
+              if (assistantMsg.attachments) setMode("modal-attachments");
+            }, 120);
+            timers.current.push(tDone);
+          }
+        }, TYPE_TICK);
+        intervals.current.push(iv);
       }, startAnswerAt);
-      timers.current.push(tAnswer);
-
-      // 3) Mark done and reveal the chart shortly after the answer.
-      const tChart = setTimeout(() => {
-        patch(id, (m) => ({ ...m, phase: "done", showChart: !!assistantMsg.chart }));
-        if (assistantMsg.attachments) setMode("modal-attachments");
-      }, startAnswerAt + CHART_REVEAL_DELAY);
-      timers.current.push(tChart);
-
-      // 4) Reveal contextual follow-ups last, but still quickly.
-      const tFollowUps = setTimeout(() => {
-        patch(id, (m) => ({ ...m, showFollowUps: !!assistantMsg.followUps?.length }));
-        setIsStreaming(false);
-      }, startAnswerAt + CHART_REVEAL_DELAY + FOLLOW_UP_REVEAL_DELAY);
-      timers.current.push(tFollowUps);
+      timers.current.push(tStart);
     },
-    [patch, setPhase]
+    [patch, setPhase, pathname]
   );
 
   const reset = useCallback(() => {

@@ -14,6 +14,7 @@ import { AssistantMessage, UserMessage } from "./types";
 import LineChartCard from "./LineChartCard";
 import PieChartCard from "./PieChartCard";
 import BarChartCard from "./BarChartCard";
+import { useCoreAI } from "./CoreAIProvider";
 
 export function UserBubble({ message }: { message: UserMessage }) {
   return (
@@ -27,6 +28,7 @@ export function UserBubble({ message }: { message: UserMessage }) {
 
 export function AssistantBlock({ message }: { message: AssistantMessage }) {
   const [copied, setCopied] = useState(false);
+  const { send } = useCoreAI();
 
   const streaming =
     message.phase === "thinking" ||
@@ -51,8 +53,7 @@ export function AssistantBlock({ message }: { message: AssistantMessage }) {
 
   const showAnswer =
     message.phase === "answering" || message.phase === "done";
-  const showChart = message.showChart && !!message.chart;
-  const showFollowUps = message.showFollowUps && !!message.followUps?.length;
+  const showChart = message.phase === "done" && !!message.chart;
   const showFeedback = message.phase === "done";
 
   return (
@@ -88,27 +89,12 @@ export function AssistantBlock({ message }: { message: AssistantMessage }) {
       {showAnswer && (
         <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-text-primary">
           {shownAnswer}
-          {false && message.phase === "answering" && (
+          {message.phase === "answering" && (
             <span className="coreai-caret" aria-hidden>
               ▍
             </span>
           )}
         </p>
-      )}
-
-      {/* ---- Follow-up suggestions ---- */}
-      {showFollowUps && (
-        <div className="mt-4 flex flex-wrap gap-2 coreai-fade-up">
-          {message.followUps?.map((followUp) => (
-            <button
-              key={followUp}
-              type="button"
-              className="focus-ring rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium text-text-secondary shadow-[0_1px_2px_rgba(17,24,39,0.04)] hover:bg-surface-muted hover:text-text-primary"
-            >
-              {followUp}
-            </button>
-          ))}
-        </div>
       )}
 
       {/* ---- Feedback actions ---- */}
@@ -149,6 +135,33 @@ export function AssistantBlock({ message }: { message: AssistantMessage }) {
           {message.chart?.kind === "bar" && <BarChartCard chart={message.chart} />}
         </div>
       )}
+
+      {message.phase === "done" && !!message.followUps?.length && (
+        <FollowUpActions prompts={message.followUps} onSelect={send} />
+      )}
+    </div>
+  );
+}
+
+function FollowUpActions({
+  prompts,
+  onSelect,
+}: {
+  prompts: string[];
+  onSelect: (prompt: string) => void;
+}) {
+  return (
+    <div className="mt-4 flex flex-wrap gap-2 coreai-fade-up">
+      {prompts.map((prompt) => (
+        <button
+          key={prompt}
+          type="button"
+          onClick={() => onSelect(prompt)}
+          className="focus-ring rounded-full border border-[#E6EAF0] bg-white px-3 py-1.5 text-[11px] font-medium text-[#4B5563] shadow-[0_1px_2px_rgba(16,24,40,0.03)] transition-colors hover:bg-[#F7F8FA] hover:text-[#15181E]"
+        >
+          {prompt}
+        </button>
+      ))}
     </div>
   );
 }

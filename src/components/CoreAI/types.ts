@@ -40,7 +40,6 @@ export interface ChartLineResponse {
   activeTab: string;
   xLabels: string[];
   series: number[];
-  datasets?: Record<string, { xLabels: string[]; series: number[] }>;
 }
 
 export interface PieSlice {
@@ -105,6 +104,14 @@ export type AssistantPhase =
   | "answering"
   | "done";
 
+export interface ScreenContext {
+  route: string;
+  pageTitle: string;
+  module: string;
+  visibleSummary: string;
+  suggestedPrompts: string[];
+}
+
 export interface AssistantMessage {
   id: string;
   role: "assistant";
@@ -122,8 +129,6 @@ export interface AssistantMessage {
   revealedThinking: number;
   // characters of `answer` revealed so far (for the typing effect)
   revealedChars: number;
-  showChart: boolean;
-  showFollowUps: boolean;
 }
 
 export interface UserMessage {
@@ -153,6 +158,13 @@ export type Topic =
 export interface ConversationContext {
   topic: Topic;
 }
+
+const DEFAULT_FOLLOW_UPS = [
+  "Show revenue trend",
+  "Compare assets and liabilities",
+  "Open related journal entries",
+  "Export this report",
+];
 
 // --------------------------------------------------------- sample attachments
 
@@ -190,7 +202,7 @@ export function buildUserMessage(text: string): UserMessage {
 function assistant(
   partial: Omit<
     AssistantMessage,
-    "id" | "role" | "phase" | "revealedThinking" | "revealedChars" | "showChart" | "showFollowUps"
+    "id" | "role" | "phase" | "revealedThinking" | "revealedChars"
   >
 ): AssistantMessage {
   return {
@@ -199,8 +211,7 @@ function assistant(
     phase: "thinking",
     revealedThinking: 0,
     revealedChars: 0,
-    showChart: false,
-    showFollowUps: false,
+    followUps: partial.followUps ?? DEFAULT_FOLLOW_UPS,
     ...partial,
   };
 }
@@ -242,49 +253,43 @@ function pctSlices(items: { label: string; amount: number; color: string }[]): P
   }));
 }
 
-function revenueChart(title: string, period: string, defaultTab: string = "YTD"): ChartLineResponse {
-  return {
-    kind: "line",
-    title,
-    period,
-    tabs: ["1M", "6M", "YTD", "1YR"],
-    activeTab: defaultTab,
-    xLabels: MONTHS.slice(0, 8) as unknown as string[],
-    series: MONTHLY_INCOME.slice(0, 8),
-    datasets: {
-      "1M": { xLabels: [MONTHS[MONTHS_POSTED - 1]] as unknown as string[], series: [MONTHLY_INCOME[MONTHS_POSTED - 1]] },
-      "6M": { xLabels: MONTHS.slice(0, 6) as unknown as string[], series: MONTHLY_INCOME.slice(0, 6) },
-      "YTD": { xLabels: MONTHS.slice(0, 8) as unknown as string[], series: MONTHLY_INCOME.slice(0, 8) },
-      "1YR": { xLabels: MONTHS as unknown as string[], series: MONTHLY_INCOME },
-    },
-  };
-}
-
-function expenseTrendChart(title: string, period: string, defaultTab: string = "YTD"): ChartLineResponse {
-  return {
-    kind: "line",
-    title,
-    period,
-    tabs: ["1M", "6M", "YTD", "1YR"],
-    activeTab: defaultTab,
-    xLabels: MONTHS.slice(0, 8) as unknown as string[],
-    series: MONTHLY_EXPENSE.slice(0, 8),
-    datasets: {
-      "1M": { xLabels: [MONTHS[MONTHS_POSTED - 1]] as unknown as string[], series: [MONTHLY_EXPENSE[MONTHS_POSTED - 1]] },
-      "6M": { xLabels: MONTHS.slice(0, 6) as unknown as string[], series: MONTHLY_EXPENSE.slice(0, 6) },
-      "YTD": { xLabels: MONTHS.slice(0, 8) as unknown as string[], series: MONTHLY_EXPENSE.slice(0, 8) },
-      "1YR": { xLabels: MONTHS as unknown as string[], series: MONTHLY_EXPENSE },
-    },
-  };
-}
-
 // ----------------------------------------------------------- the engine
 
 export function buildAssistantResponse(
   prompt: string,
-  ctx: ConversationContext
+  ctx: ConversationContext,
+  screen?: ScreenContext
 ): { message: AssistantMessage; context: ConversationContext } {
   const p = clean(prompt);
+
+  const wantsScreenSummary = hasAny(p, [
+    "this screen",
+    "this page",
+    "what am i looking at",
+    "summarize page",
+    "summarise page",
+    "explain this page",
+    "explain this screen",
+    "what can i do here",
+    "based on this page",
+    "visible data",
+  ]);
+
+  if (screen && wantsScreenSummary) {
+    return {
+      context: { topic: ctx.topic },
+      message: assistant({
+        thinking: [
+          "Reading the active ChainCore workspace",
+          "Checking the visible module and screen state",
+        ],
+        thinkingSeconds: 2,
+        researching: `Using the current ${screen.pageTitle} page context.`,
+        answer: `You are currently on ${screen.pageTitle} in the ${screen.module} module. ${screen.visibleSummary}`,
+        followUps: screen.suggestedPrompts,
+      }),
+    };
+  }
 
   const wantsBranchBreakdown = hasAny(p, ["by branch", "per branch", "each branch", "branches"]);
   const wantsCategoryBreakdown = hasAny(p, ["by category", "per category", "breakdown", "break down", "break it down"]);
@@ -322,7 +327,6 @@ export function buildAssistantResponse(
         researching: "Reading cash & balances GL as of close of business yesterday.",
         answer: `Your total group cash position is ${naira(GROUP_CASH)} across ${BRANCH_POSITIONS.length} branches. Lagos (HQ) holds the largest share at ${naira(BRANCH_POSITIONS[0].cash)} (${Math.round((BRANCH_POSITIONS[0].cash / GROUP_CASH) * 100)}% of the total). Here's the breakdown by branch:`,
         chart: { kind: "bar", title: "Cash by Branch", period: "As of yesterday", bars },
-        followUps: ["Show liquidity trend", "Compare branches", "Open cash GL accounts", "Export this report"],
         attachments: SAMPLE_ATTACHMENTS,
       }),
     };
@@ -348,8 +352,15 @@ export function buildAssistantResponse(
           thinkingSeconds: 4,
           researching: "Aggregating expense GL postings by month.",
           answer: `Here's your operating-expense trend for ${period.label}. Spend has grown steadily, ending at ${naira(series[series.length - 1])} in the latest posted month.`,
-          chart: expenseTrendChart("Operating Expenses", period.label),
-          followUps: ["Show by category", "Compare with revenue", "Open related journal entries", "Export this report"],
+          chart: {
+            kind: "line",
+            title: "Operating Expenses",
+            period: period.label,
+            tabs: ["1M", "6M", "YTD", "1YR"],
+            activeTab: "YTD",
+            xLabels: MONTHS.slice(0, period.count) as unknown as string[],
+            series,
+          },
         }),
       };
     }
@@ -372,7 +383,6 @@ export function buildAssistantResponse(
         researching: "Grouping posted expenses by category.",
         answer: `Total operating expenses for ${period.label} are ${naira(total)}. Staff Costs are the largest line at ${naira(EXPENSE_BY_CATEGORY[0].amount)} (${Math.round((EXPENSE_BY_CATEGORY[0].amount / total) * 100)}%). Here's the breakdown by category:`,
         chart: { kind: "bar", title: "Expenses by Category", period: period.label, bars },
-        followUps: ["Show expense trend", "Compare with revenue", "Open expense GL accounts", "Export this report"],
         attachments: SAMPLE_ATTACHMENTS,
       }),
     };
@@ -403,7 +413,6 @@ export function buildAssistantResponse(
         researching: "Reconciling income vs expense postings.",
         answer: `For ${period.label}, income is ${naira(inc)} against expenses of ${naira(exp)}, giving a net income of ${naira(net)} — a margin of ${Math.round((net / inc) * 100)}%.`,
         chart: { kind: "bar", title: "Income vs Expenses", period: period.label, bars },
-        followUps: ["Show revenue trend", "Show expense trend", "Open related journal entries", "Export this report"],
       }),
     };
   }
@@ -424,15 +433,22 @@ export function buildAssistantResponse(
         thinkingSeconds: 5,
         researching: "Looking across interest income, fees and FX lines.",
         answer: `Here's your revenue trend for ${period.label}. Total income over the period is ${naira(total)}, driven mainly by interest income on loans, and rising month-on-month.`,
-        chart: revenueChart("Revenue", period.label),
-        followUps: ["Show revenue trend", "Compare with expenses", "Open income GL accounts", "Export this report"],
+        chart: {
+          kind: "line",
+          title: "Revenue",
+          period: "2024",
+          tabs: ["1M", "6M", "YTD", "1YR"],
+          activeTab: "YTD",
+          xLabels: MONTHS.slice(0, period.count) as unknown as string[],
+          series,
+        },
       }),
     };
   }
 
   // ---------------------------------------------------------- ASSET MIX
   if (
-    hasAny(p, ["asset allocation", "asset mix", "allocation", "portfolio", "balance sheet", "assets"]) ||
+    hasAny(p, ["asset allocation", "asset mix", "allocation", "portfolio", "balance sheet", "view balance", "financial position", "assets"]) ||
     (ctx.topic === "assets" && isBareFollowup)
   ) {
     if (hasAny(p, ["allocation", "mix", "portfolio", "breakdown", "by category"])) {
@@ -448,7 +464,6 @@ export function buildAssistantResponse(
           researching: "Computing share of total assets by class.",
           answer: `Here's the asset allocation across the major balance-sheet classes. Loans & Advances remain the largest exposure at ${naira(ASSET_MIX[0].amount)}.`,
           chart: { kind: "pie", title: "Asset Allocation", period: "This Quarter", slices: pctSlices(ASSET_MIX) },
-          followUps: ["Compare assets and liabilities", "Open balance sheet", "View top asset GLs", "Export this report"],
         }),
       };
     }
@@ -464,7 +479,6 @@ export function buildAssistantResponse(
         researching: "Reading the balance sheet as of close of business yesterday.",
         answer: `Total assets stand at ${naira(BS_HEADLINES.totalAssets)}, against liabilities of ${naira(BS_HEADLINES.totalLiabilities)}, leaving equity of ${naira(BS_HEADLINES.totalEquity)}. Loans & advances are ${naira(BS_HEADLINES.loansAndAdvances)} and customer deposits are ${naira(BS_HEADLINES.customerDeposits)}.`,
         chart: { kind: "pie", title: "Asset Allocation", period: "This Quarter", slices: pctSlices(ASSET_MIX) },
-        followUps: ["Compare assets and liabilities", "Open balance sheet", "View top asset GLs", "Export this report"],
         attachments: SAMPLE_ATTACHMENTS,
       }),
     };
@@ -534,7 +548,6 @@ export function buildAssistantResponse(
         researching: "Sorting the General Ledger by balance.",
         answer: `Your five largest GL accounts by balance are:\n\n${list}`,
         chart: { kind: "bar", title: "Top Accounts by Balance", period: "Current", bars },
-        followUps: ["Open GL report", "Show by account class", "View journal entries", "Export this report"],
       }),
     };
   }
@@ -573,7 +586,7 @@ export function buildAssistantResponse(
   }
 
   // ------------------------------------------------------- ACTION: journal
-  if (hasAny(p, ["add journal", "journal entry", "post entry", "manual journal", "new entry"])) {
+  if (hasAny(p, ["add journal", "add journal entry", "journal entry", "post entry", "manual journal", "new entry"])) {
     return {
       context: { topic: "none" },
       message: assistant({
@@ -589,7 +602,7 @@ export function buildAssistantResponse(
   }
 
   // ------------------------------------------------------- ACTION: product
-  if (hasAny(p, ["create product", "new product", "set up product", "product setup"])) {
+  if (hasAny(p, ["create product", "create new product", "new product", "set up product", "product setup"])) {
     return {
       context: { topic: "none" },
       message: assistant({
@@ -605,7 +618,7 @@ export function buildAssistantResponse(
   }
 
   // ----------------------------------------------------- ACTION: user role
-  if (hasAny(p, ["user role", "update role", "permission", "access right", "change role"])) {
+  if (hasAny(p, ["user role", "update user role", "update role", "permission", "access right", "change role"])) {
     return {
       context: { topic: "none" },
       message: assistant({
@@ -652,9 +665,83 @@ export function buildAssistantResponse(
 // --------------------------------------------------------- suggested prompts
 
 export const SUGGESTED_PROMPTS: string[] = [
-  "What's our total cash position by branch?",
-  "Show me revenue trend this year",
-  "Break expenses down by category",
-  "Is my trial balance balanced?",
-  "What journal entries are pending approval?",
+  "Add Journal Entry",
+  "View Balance",
+  "Create New Product",
+  "View Clients",
+  "Update user role",
 ];
+
+
+export function getScreenContext(pathname: string): ScreenContext {
+  if (pathname.includes("/accounting/journal/create")) {
+    return {
+      route: pathname,
+      pageTitle: "Create Manual Journal Entry",
+      module: "Accounting",
+      visibleSummary: "This screen is used to prepare debit and credit line items, select organisation level details, set the transaction date, add notes, and submit the journal for maker-checker approval.",
+      suggestedPrompts: ["Explain this journal form", "Check if debits and credits balance", "What approval happens after create?", "Show related GL accounts"],
+    };
+  }
+  if (pathname.includes("/accounting/journal")) {
+    return {
+      route: pathname,
+      pageTitle: "Journal Entries",
+      module: "Accounting",
+      visibleSummary: "This page lists journal entries with entry time, total amount, transaction date, user, category, approval status, and expandable debit/credit details.",
+      suggestedPrompts: ["Summarize visible entries", "Explain approved status", "Show manual entries", "Find unusual journal activity"],
+    };
+  }
+  if (pathname.includes("/accounting/charts-of-account/create")) {
+    return {
+      route: pathname,
+      pageTitle: "Create New General Ledger",
+      module: "Accounting",
+      visibleSummary: "This form creates a new GL account with account name, code, hierarchy type, header account, head-office visibility, and notes.",
+      suggestedPrompts: ["Explain GL hierarchy", "What code should I use?", "What is a posting account?", "What approval is required?"],
+    };
+  }
+  if (pathname.includes("/accounting/charts-of-account")) {
+    return {
+      route: pathname,
+      pageTitle: "Charts of Account",
+      module: "Accounting",
+      visibleSummary: "This screen shows the account hierarchy across All, Asset, Liability, Equity, Income, and Expense tabs, with search, filters, export, and GL account creation.",
+      suggestedPrompts: ["Explain this GL hierarchy", "Show asset accounts", "Find income accounts", "Help create a new GL"],
+    };
+  }
+  if (pathname.includes("/accounting/balance-sheet")) {
+    return {
+      route: pathname,
+      pageTitle: "Balance Sheet",
+      module: "Accounting",
+      visibleSummary: "This report summarises assets, liabilities, and equity with expandable GL lines, filters, pagination, and export controls.",
+      suggestedPrompts: ["Summarize this balance sheet", "Compare assets and liabilities", "Explain equity position", "Show asset allocation"],
+    };
+  }
+  if (pathname.includes("/accounting/trial-balance")) {
+    return {
+      route: pathname,
+      pageTitle: "Trial Balance",
+      module: "Accounting",
+      visibleSummary: "This report compares opening balances, debits, credits, net changes, and closing balances across the GL structure, including a total debit and credit row.",
+      suggestedPrompts: ["Is this trial balance balanced?", "Explain debit and credit totals", "Show accounts with large movement", "Prepare export"],
+    };
+  }
+  if (pathname.includes("/accounting/income-expenses")) {
+    return {
+      route: pathname,
+      pageTitle: "Income & Expenses",
+      module: "Accounting",
+      visibleSummary: "This page is reserved for income and expense performance analysis. It should eventually show revenue, expenses, net position, category breakdown, and trend analysis.",
+      suggestedPrompts: ["Show revenue trend", "Break expenses down by category", "Compare income and expenses", "Explain net position"],
+    };
+  }
+  return {
+    route: pathname,
+    pageTitle: "ChainCore Workspace",
+    module: "Core Banking",
+    visibleSummary: "I can use your current ChainCore screen, active accounting data, and available mock reporting data to answer page-aware questions.",
+    suggestedPrompts: DEFAULT_FOLLOW_UPS,
+  };
+}
