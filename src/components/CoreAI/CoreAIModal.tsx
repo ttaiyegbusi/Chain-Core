@@ -23,24 +23,27 @@ export default function CoreAIPanel() {
   const {
     isOpen,
     mode,
+    expanded,
     messages,
     close,
-    toggleMode,
+    toggleExpanded,
     send,
     hideAttachments,
   } = useCoreAI();
 
   // Keep the panel mounted while the exit animation is playing.
   const [mounted, setMounted] = useState(false);
-  const [phase, setPhase] = useState<"enter" | "exit">("enter");
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
-      setPhase("enter");
+      // Flip to visible on the next frame so the CSS transition runs.
+      const r = requestAnimationFrame(() => setVisible(true));
+      return () => cancelAnimationFrame(r);
     } else if (mounted) {
-      setPhase("exit");
-      const t = setTimeout(() => setMounted(false), 200);
+      setVisible(false);
+      const t = setTimeout(() => setMounted(false), 240);
       return () => clearTimeout(t);
     }
   }, [isOpen, mounted]);
@@ -82,81 +85,82 @@ export default function CoreAIPanel() {
       role="dialog"
       aria-modal="false"
       aria-labelledby="coreai-title"
+      style={{
+        // Smooth, spring-like easing for the expand/collapse + open/close.
+        transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
+      }}
       className={[
-        "fixed right-5 top-[86px] bottom-5 z-40 flex overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.18)] ring-1 ring-border",
-        showingAttachments ? "w-[830px]" : "w-[450px]",
-        "max-w-[calc(100vw-40px)]",
-        phase === "enter" ? "coreai-panel-enter" : "coreai-panel-exit",
+        "fixed z-40 flex flex-col overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.18)] ring-1 ring-border",
+        // animate size + position changes smoothly
+        "transition-[width,height,top,bottom,left,right,transform,opacity] duration-[420ms]",
+        expanded
+          ? // Centered, larger floating panel (backdrop-free) — like image 3.
+            "left-1/2 top-1/2 h-[86vh] w-[min(1100px,92vw)] -translate-x-1/2 -translate-y-1/2"
+          : // Right-side docked panel.
+            "right-5 top-[86px] bottom-5 w-[450px] max-w-[calc(100vw-40px)]",
+        // open/close fade (layout transition handles size/position)
+        visible ? "opacity-100" : "opacity-0",
       ].join(" ")}
     >
-      {/* Main conversation column */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        {/* Internal header */}
-        <div className="flex h-[64px] items-center justify-between border-b border-border px-6">
-          <h2
-            id="coreai-title"
-            className="text-sm font-semibold text-text-primary"
+      {/* Internal header */}
+      <div className="flex h-[64px] shrink-0 items-center justify-between border-b border-border px-6">
+        <h2 id="coreai-title" className="text-sm font-semibold text-text-primary">
+          Core Ai
+        </h2>
+        <div className="flex items-center gap-2">
+          <HeaderIcon label="Open Core AI options">
+            <MoreVertical size={16} aria-hidden />
+          </HeaderIcon>
+          <HeaderIcon
+            label={expanded ? "Collapse Core AI" : "Expand Core AI"}
+            onClick={toggleExpanded}
           >
-            Core Ai
-          </h2>
-          <div className="flex items-center gap-2">
-            <HeaderIcon label="Open Core AI options">
-              <MoreVertical size={16} aria-hidden />
-            </HeaderIcon>
-            <HeaderIcon
-              label={
-                showingAttachments
-                  ? "Hide attachments"
-                  : "Show attachments"
-              }
-              onClick={toggleMode}
-            >
-              {showingAttachments ? (
-                <Minimize2 size={14} aria-hidden />
-              ) : (
-                <Maximize2 size={14} aria-hidden />
-              )}
-            </HeaderIcon>
-            <HeaderIcon label="Close Core AI" onClick={close}>
-              <X size={16} aria-hidden />
-            </HeaderIcon>
-          </div>
+            {expanded ? (
+              <Minimize2 size={14} aria-hidden />
+            ) : (
+              <Maximize2 size={14} aria-hidden />
+            )}
+          </HeaderIcon>
+          <HeaderIcon label="Close Core AI" onClick={close}>
+            <X size={16} aria-hidden />
+          </HeaderIcon>
         </div>
-
-        {/* Body */}
-        {hasConversation ? (
-          <>
-            <div
-              ref={conversationRef}
-              className="flex-1 overflow-y-auto px-6"
-            >
-              {messages.map((m) =>
-                m.role === "user" ? (
-                  <UserBubble key={m.id} message={m} />
-                ) : (
-                  <AssistantBlock key={m.id} message={m} />
-                )
-              )}
-              <div className="h-6" />
-            </div>
-            <Composer onSend={send} />
-          </>
-        ) : (
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto">
-              <Welcome onPromptClick={send} />
-            </div>
-            <Composer onSend={send} />
-          </div>
-        )}
       </div>
 
-      {showingAttachments && attachmentsForPanel && (
-        <AttachmentsPanel
-          attachments={attachmentsForPanel}
-          onClose={hideAttachments}
-        />
-      )}
+      {/* Body row: conversation (+ optional attachments column) */}
+      <div className="flex min-h-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
+          {hasConversation ? (
+            <>
+              <div ref={conversationRef} className="flex-1 overflow-y-auto px-6">
+                {messages.map((m) =>
+                  m.role === "user" ? (
+                    <UserBubble key={m.id} message={m} />
+                  ) : (
+                    <AssistantBlock key={m.id} message={m} />
+                  )
+                )}
+                <div className="h-6" />
+              </div>
+              <Composer onSend={send} />
+            </>
+          ) : (
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto">
+                <Welcome onPromptClick={send} />
+              </div>
+              <Composer onSend={send} />
+            </div>
+          )}
+        </div>
+
+        {showingAttachments && attachmentsForPanel && (
+          <AttachmentsPanel
+            attachments={attachmentsForPanel}
+            onClose={hideAttachments}
+          />
+        )}
+      </div>
     </div>
   );
 }

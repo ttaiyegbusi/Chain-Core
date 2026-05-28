@@ -25,11 +25,13 @@ type Mode = "modal" | "modal-attachments";
 interface CoreAIContextValue {
   isOpen: boolean;
   mode: Mode;
+  expanded: boolean;
   messages: CoreAIMessage[];
   isStreaming: boolean;
   open: () => void;
   close: () => void;
   toggleMode: () => void;
+  toggleExpanded: () => void;
   send: (text: string) => void;
   showAttachments: () => void;
   hideAttachments: () => void;
@@ -48,6 +50,7 @@ const TYPE_CHARS_PER_TICK = 14
 export function CoreAIProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("modal");
+  const [expanded, setExpanded] = useState(false);
   const [messages, setMessages] = useState<CoreAIMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const pathname = usePathname();
@@ -59,11 +62,15 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
   const intervals = useRef<ReturnType<typeof setInterval>[]>([]);
 
   const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
+  const close = useCallback(() => {
+    setIsOpen(false);
+    setExpanded(false); // always collapse on close
+  }, []);
   const toggleMode = useCallback(
     () => setMode((m) => (m === "modal" ? "modal-attachments" : "modal")),
     []
   );
+  const toggleExpanded = useCallback(() => setExpanded((e) => !e), []);
   const showAttachments = useCallback(() => setMode("modal-attachments"), []);
   const hideAttachments = useCallback(() => setMode("modal"), []);
 
@@ -139,11 +146,11 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
           });
           if (finished) {
             clearInterval(iv);
-            // 4) Done — reveal chart/attachments, stop streaming.
+            // 4) Done — reveal chart, stop streaming. The panel does NOT
+            // resize on its own; expansion is user-controlled only.
             const tDone = setTimeout(() => {
               patch(id, (m) => ({ ...m, phase: "done", revealedChars: full }));
               setIsStreaming(false);
-              if (assistantMsg.attachments) setMode("modal-attachments");
             }, 120);
             timers.current.push(tDone);
           }
@@ -169,17 +176,19 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
     () => ({
       isOpen,
       mode,
+      expanded,
       messages,
       isStreaming,
       open,
       close,
       toggleMode,
+      toggleExpanded,
       send,
       showAttachments,
       hideAttachments,
       reset,
     }),
-    [isOpen, mode, messages, isStreaming, open, close, toggleMode, send, showAttachments, hideAttachments, reset]
+    [isOpen, mode, expanded, messages, isStreaming, open, close, toggleMode, toggleExpanded, send, showAttachments, hideAttachments, reset]
   );
 
   return (

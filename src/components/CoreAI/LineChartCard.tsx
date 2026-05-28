@@ -34,7 +34,7 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
   );
 
   return (
-    <div className="mt-4 rounded-[20px] border border-[#ECEFF3] bg-[#F7F8FA] p-4 coreai-fade-up">
+    <div className="mt-4 rounded-[20px] bg-[#F7F8FA] p-4 coreai-fade-up">
       {/* Header: real title + period */}
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-[13px] font-medium tracking-[-0.02em] text-[#15181E]">
@@ -72,7 +72,7 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
         })}
       </div>
 
-      <div className="rounded-[16px] border border-[#EEF1F4] bg-white px-2 pb-1 pt-3">
+      <div className="rounded-[16px] bg-white pt-2 pr-1 pb-1 pl-1">
         <AreaChart series={series} labels={labels} />
       </div>
     </div>

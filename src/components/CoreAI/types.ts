@@ -255,7 +255,47 @@ function pctSlices(items: { label: string; amount: number; color: string }[]): P
 
 // ----------------------------------------------------------- the engine
 
+// Contextual follow-up chips per topic. These replace the old generic four
+// so the suggestions always relate to the answer the user just received.
+const FOLLOW_UPS_BY_TOPIC: Record<Topic, string[]> = {
+  cash: ["Compare to last month", "Show idle cash by branch", "Export cash position"],
+  expenses: ["Show expense trend", "Compare to income", "Which branch spent most?"],
+  income: ["Compare to expenses", "Break down by source", "Export income report"],
+  revenue: ["Compare to last year", "Break down by branch", "Export revenue report"],
+  net: ["Show revenue trend", "Show expense breakdown", "Export P&L summary"],
+  assets: ["Show liabilities", "View loan book", "Export balance sheet"],
+  "trial-balance": ["View pending approvals", "Open the journal", "Export trial balance"],
+  approvals: ["Approve all pending", "Filter by branch", "Open the journal"],
+  "top-accounts": ["Show account trend", "View GL hierarchy", "Export account list"],
+  cbn: ["View capital adequacy", "List outstanding items", "Export CBN return"],
+  clients: ["Top depositors", "New accounts this month", "Export client list"],
+  none: ["Show revenue trend", "View pending approvals", "Summarize this page"],
+};
+
 export function buildAssistantResponse(
+  prompt: string,
+  ctx: ConversationContext,
+  screen?: ScreenContext
+): { message: AssistantMessage; context: ConversationContext } {
+  const result = buildResponseInner(prompt, ctx, screen);
+  // If a branch didn't supply its own follow-ups (i.e. it fell back to the
+  // default), replace them with topic-contextual ones.
+  const m = result.message;
+  const usedDefault =
+    !m.followUps ||
+    m.followUps === DEFAULT_FOLLOW_UPS ||
+    sameArray(m.followUps, DEFAULT_FOLLOW_UPS);
+  if (usedDefault) {
+    m.followUps = FOLLOW_UPS_BY_TOPIC[result.context.topic] ?? FOLLOW_UPS_BY_TOPIC.none;
+  }
+  return result;
+}
+
+function sameArray(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((x, i) => x === b[i]);
+}
+
+function buildResponseInner(
   prompt: string,
   ctx: ConversationContext,
   screen?: ScreenContext
