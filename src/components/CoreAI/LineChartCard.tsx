@@ -16,7 +16,7 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
         </h3>
         <button
           type="button"
-          className="focus-ring flex items-center gap-1.5 rounded-lg border border-border-strong bg-surface px-3 py-1.5 text-xs text-text-primary hover:bg-bg-sub"
+          className="focus-ring flex items-center gap-1.5 rounded-md border border-border-strong bg-white px-3 py-1.5 text-xs text-text-primary hover:bg-surface-muted"
         >
           {chart.period}
           <ChevronDown size={14} className="text-text-secondary" aria-hidden />
@@ -27,7 +27,7 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
       <div
         role="tablist"
         aria-label="Time range"
-        className="mb-5 flex gap-1 rounded-lg border border-border-strong bg-surface p-1"
+        className="mb-5 flex gap-1 rounded-md border border-border-strong bg-white p-1"
       >
         {chart.tabs.map((t) => {
           const active = t === activeTab;
@@ -41,7 +41,7 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
                 "focus-ring flex-1 rounded-[6px] px-3 py-1.5 text-xs font-medium transition-colors",
                 active
                   ? "bg-surface-muted text-text-primary"
-                  : "text-text-muted hover:bg-bg-sub",
+                  : "text-text-muted hover:bg-surface-muted",
               ].join(" ")}
             >
               {t}
@@ -86,7 +86,7 @@ function LineSVG({ xLabels, series }: { xLabels: string[]; series: number[] }) {
   const gridYs = [0, 0.5, 1].map((t) => padTop + t * (H - padTop - padBottom));
 
   return (
-    <div className="rounded-xl bg-surface p-2">
+    <div className="rounded-xl bg-white p-2">
       <svg
         viewBox={`0 0 ${W} ${H + 20}`}
         className="block h-auto w-full"

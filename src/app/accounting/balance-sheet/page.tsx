@@ -92,11 +92,11 @@ export default function BalanceSheetPage() {
   const totalPages = Math.ceil(totalItems / rowsPerPage);
 
   return (
-    <div className="cc-page">
+    <div className="min-h-screen bg-white">
       <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
-      <main className="cc-main">
+      <main className="ml-[316px]">
         {/* Header */}
         <GlobalHeader
           title="Accounting"
@@ -107,8 +107,8 @@ export default function BalanceSheetPage() {
                 ]}
         />
 
-        <section className="cc-section">
-          <h2 className="cc-page-title">
+        <section className="px-10 pb-10 pt-6">
+          <h2 className="text-xl font-semibold text-text-primary">
             Balance Sheet
           </h2>
 
@@ -126,7 +126,7 @@ export default function BalanceSheetPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search"
                 aria-label="Search balance sheet"
-                className="focus-ring h-10 w-[360px] max-w-full rounded-lg border border-border-strong pl-[42px] pr-3.5 text-sm text-text-primary placeholder:text-text-muted"
+                className="focus-ring h-10 w-[360px] max-w-full rounded-md border border-border-strong pl-[42px] pr-3.5 text-sm text-text-primary placeholder:text-text-muted"
               />
             </div>
 
@@ -134,14 +134,14 @@ export default function BalanceSheetPage() {
               <button
                 type="button"
                 onClick={() => setFilterOpen(true)}
-                className="cc-btn-secondary"
+                className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
               >
                 <SlidersHorizontal size={16} aria-hidden />
                 Filter
               </button>
               <button
                 type="button"
-                className="cc-btn-secondary"
+                className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
               >
                 Export
                 <Upload size={16} aria-hidden />

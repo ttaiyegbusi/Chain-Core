@@ -50,25 +50,25 @@ export default function ChartOfAccountsTable({
   walk(data, 0);
 
   return (
-    <div className="cc-table-wrap overflow-x-auto">
-      <table className="cc-table min-w-[760px]">
+    <div className="mt-4 overflow-x-auto">
+      <table className="w-full min-w-[760px] border-collapse">
         <thead>
-          <tr className="text-left">
-            <th className="cc-th px-6">
+          <tr className="bg-surface-muted text-left">
+            <th className="rounded-tl-md px-6 py-3 text-[13px] font-medium text-text-primary">
               Code
             </th>
-            <th className="cc-th">
+            <th className="px-4 py-3 text-[13px] font-medium text-text-primary">
               Name
             </th>
             {showType && (
-              <th className="cc-th">
+              <th className="px-4 py-3 text-[13px] font-medium text-text-primary">
                 Type
               </th>
             )}
-            <th className="cc-th text-right">
+            <th className="px-4 py-3 text-right text-[13px] font-medium text-text-primary">
               Amount
             </th>
-            <th className="cc-th w-12" aria-label="Actions" />
+            <th className="w-12 rounded-tr-md px-4 py-3" aria-label="Actions" />
           </tr>
         </thead>
         <tbody>
@@ -80,7 +80,7 @@ export default function ChartOfAccountsTable({
             return (
               <tr
                 key={account.id}
-                className="transition-colors hover:bg-bg-sub/50"
+                className="border-b border-border transition-colors hover:bg-surface-muted/50"
               >
                 {/* Code cell with hierarchy */}
                 <td className="py-4 pr-4 align-middle">
@@ -155,14 +155,14 @@ export default function ChartOfAccountsTable({
                 </td>
 
                 {/* Actions */}
-                <td className="cc-td relative text-right">
+                <td className="relative px-4 py-4 text-right align-middle">
                   <button
                     type="button"
                     aria-label={`Actions for ${account.name}`}
                     onClick={() =>
                       setOpenMenu(openMenu === account.id ? null : account.id)
                     }
-                    className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-sub"
+                    className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-md text-text-secondary hover:bg-surface-muted"
                   >
                     <MoreVertical size={18} aria-hidden />
                   </button>
@@ -176,7 +176,7 @@ export default function ChartOfAccountsTable({
                       />
                       <div
                         role="menu"
-                        className="absolute right-4 top-12 z-20 w-44 overflow-hidden rounded-lg border border-border bg-surface py-1 text-left shadow-md"
+                        className="absolute right-4 top-12 z-20 w-44 overflow-hidden rounded-md border border-border bg-white py-1 text-left shadow-[0_8px_24px_rgba(17,24,39,0.12)]"
                       >
                         {[
                           { label: "View GL", action: () => router.push(`/accounting/charts-of-account/${account.id}`) },
@@ -193,7 +193,7 @@ export default function ChartOfAccountsTable({
                                 setOpenMenu(null);
                                 action();
                               }}
-                              className="block w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-bg-sub"
+                              className="block w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-surface-muted"
                             >
                               {label}
                             </button>

@@ -39,14 +39,14 @@ export default function AccountingSidebar({
 
   return (
     <aside
-      className="fixed left-[66px] top-0 z-20 flex h-screen w-[250px] min-w-[250px] flex-col border-r border-border bg-surface"
+      className="fixed left-[66px] top-0 z-20 flex h-screen w-[250px] min-w-[250px] flex-col border-r border-border bg-white"
       aria-label="Accounting navigation"
     >
       {/* Module pill (dropdown style) */}
       <div className="px-4 pt-5">
         <button
           type="button"
-          className="focus-ring flex w-full items-center justify-between rounded-xl border border-border bg-bg-sub px-3 py-2.5 shadow-xs"
+          className="focus-ring flex w-full items-center justify-between rounded-md bg-surface-muted px-3 py-2.5"
         >
           <span className="flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border-strong text-text-secondary">
@@ -61,7 +61,7 @@ export default function AccountingSidebar({
       </div>
 
       {/* Menu label */}
-      <div className="px-5 pb-2 pt-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+      <div className="px-5 pb-2 pt-5 text-[11px] font-semibold tracking-wider text-text-subtle">
         {menuLabel}
       </div>
 
@@ -74,17 +74,17 @@ export default function AccountingSidebar({
               key={item.label}
               href={item.href}
               aria-current={active ? "page" : undefined}
-              className="focus-ring rounded-lg"
+              className="focus-ring rounded-md"
             >
               <span
                 className={[
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors",
                   active
-                    ? "bg-primary-soft text-primary"
-                    : "text-text-secondary hover:bg-bg-sub hover:text-text-primary",
+                    ? "bg-surface-muted text-text-primary"
+                    : "text-text-secondary hover:bg-surface-muted",
                 ].join(" ")}
               >
-                <Icon size={18} strokeWidth={1.75} aria-hidden />
+                <Icon size={18} strokeWidth={1.9} aria-hidden />
                 {item.label}
               </span>
             </Link>

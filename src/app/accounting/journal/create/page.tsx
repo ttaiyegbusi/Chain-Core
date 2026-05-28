@@ -77,7 +77,7 @@ export default function CreateManualJournalPage() {
   const allSelected = rows.length > 0 && selected.size === rows.length;
 
   return (
-    <div className="cc-page">
+    <div className="min-h-screen bg-white">
       <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
@@ -114,7 +114,7 @@ export default function CreateManualJournalPage() {
           <button
             type="button"
             onClick={() => setShowSuccess(true)}
-            className="focus-ring inline-flex h-10 items-center justify-center rounded-lg bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+            className="focus-ring inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
           >
             Create
           </button>
@@ -183,7 +183,7 @@ export default function CreateManualJournalPage() {
                             }
                             aria-label={`Account for row ${idx + 1}`}
                             className={[
-                              "focus-ring h-10 w-full appearance-none rounded-lg border border-transparent bg-transparent pr-8 text-sm hover:border-border-strong",
+                              "focus-ring h-10 w-full appearance-none rounded-md border border-transparent bg-transparent pr-8 text-sm hover:border-border-strong",
                               row.account ? "text-text-primary" : "text-text-muted",
                             ].join(" ")}
                           >
@@ -214,7 +214,7 @@ export default function CreateManualJournalPage() {
                           }
                           placeholder="-"
                           aria-label={`Debit for row ${idx + 1}`}
-                          className="focus-ring h-10 w-full rounded-lg border border-transparent bg-transparent px-2 text-right text-sm text-text-primary placeholder:text-text-muted hover:border-border-strong"
+                          className="focus-ring h-10 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-text-primary placeholder:text-text-muted hover:border-border-strong"
                         />
                       </td>
 
@@ -230,7 +230,7 @@ export default function CreateManualJournalPage() {
                           }
                           placeholder="-"
                           aria-label={`Credit for row ${idx + 1}`}
-                          className="focus-ring h-10 w-full rounded-lg border border-transparent bg-transparent px-2 text-right text-sm text-text-primary placeholder:text-text-muted hover:border-border-strong"
+                          className="focus-ring h-10 w-full rounded-md border border-transparent bg-transparent px-2 text-right text-sm text-text-primary placeholder:text-text-muted hover:border-border-strong"
                         />
                       </td>
 
@@ -242,7 +242,7 @@ export default function CreateManualJournalPage() {
                           onClick={() =>
                             setOpenMenu(openMenu === row.id ? null : row.id)
                           }
-                          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-sub"
+                          className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-md text-text-secondary hover:bg-surface-muted"
                         >
                           <MoreVertical size={18} aria-hidden />
                         </button>
@@ -255,7 +255,7 @@ export default function CreateManualJournalPage() {
                             />
                             <div
                               role="menu"
-                              className="absolute right-4 top-11 z-20 w-40 overflow-hidden rounded-lg border border-border bg-surface py-1 text-left shadow-md"
+                              className="absolute right-4 top-11 z-20 w-40 overflow-hidden rounded-md border border-border bg-white py-1 text-left shadow-[0_8px_24px_rgba(17,24,39,0.12)]"
                             >
                               <button
                                 type="button"
@@ -264,7 +264,7 @@ export default function CreateManualJournalPage() {
                                   removeRow(row.id);
                                   setOpenMenu(null);
                                 }}
-                                className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-bg-sub"
+                                className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-surface-muted"
                               >
                                 Delete row
                               </button>
@@ -297,7 +297,7 @@ export default function CreateManualJournalPage() {
                   <input
                     readOnly
                     value={hasValues ? money(totalDebit) : "-"}
-                    className="h-[46px] w-full rounded-lg border border-border-strong bg-surface px-3.5 text-sm text-text-primary"
+                    className="h-[46px] w-full rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-primary"
                   />
                 </div>
                 <div>
@@ -308,7 +308,7 @@ export default function CreateManualJournalPage() {
                   <input
                     readOnly
                     value={hasValues ? money(totalCredit) : "-"}
-                    className="h-[46px] w-full rounded-lg border border-border-strong bg-surface px-3.5 text-sm text-text-primary"
+                    className="h-[46px] w-full rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-primary"
                   />
                 </div>
               </div>
@@ -327,7 +327,7 @@ export default function CreateManualJournalPage() {
                     value={branch}
                     onChange={(e) => setBranch(e.target.value)}
                     className={[
-                      "focus-ring h-[46px] w-full appearance-none rounded-lg border border-border-strong bg-surface px-3.5 pr-10 text-sm",
+                      "focus-ring h-[46px] w-full appearance-none rounded-md border border-border-strong bg-white px-3.5 pr-10 text-sm",
                       branch ? "text-text-primary" : "text-text-muted",
                     ].join(" ")}
                   >
@@ -352,7 +352,7 @@ export default function CreateManualJournalPage() {
                     value={level}
                     onChange={(e) => setLevel(e.target.value)}
                     className={[
-                      "focus-ring h-[46px] w-full appearance-none rounded-lg border border-border-strong bg-surface px-3.5 pr-10 text-sm",
+                      "focus-ring h-[46px] w-full appearance-none rounded-md border border-border-strong bg-white px-3.5 pr-10 text-sm",
                       level ? "text-text-primary" : "text-text-muted",
                     ].join(" ")}
                   >
@@ -380,7 +380,7 @@ export default function CreateManualJournalPage() {
                   onChange={(e) => setTxnDate(e.target.value)}
                   placeholder="11-12-2025"
                   aria-label="Transaction date"
-                  className="focus-ring h-[46px] w-full rounded-lg border border-border-strong bg-surface px-3.5 pr-11 text-sm text-text-primary placeholder:text-text-muted"
+                  className="focus-ring h-[46px] w-full rounded-md border border-border-strong bg-white px-3.5 pr-11 text-sm text-text-primary placeholder:text-text-muted"
                 />
                 <Calendar
                   size={18}
@@ -402,7 +402,7 @@ export default function CreateManualJournalPage() {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Write a note"
                 rows={5}
-                className="focus-ring w-full max-w-[640px] rounded-lg border border-border-strong bg-surface px-3.5 pt-3 text-sm text-text-primary placeholder:text-text-muted"
+                className="focus-ring w-full max-w-[640px] rounded-md border border-border-strong bg-white px-3.5 pt-3 text-sm text-text-primary placeholder:text-text-muted"
                 style={{ minHeight: 150 }}
               />
             </div>

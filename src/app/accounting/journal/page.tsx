@@ -42,11 +42,11 @@ export default function JournalPage() {
   const totalPages = Math.ceil(totalItems / rowsPerPage);
 
   return (
-    <div className="cc-page">
+    <div className="min-h-screen bg-white">
       <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
-      <main className="cc-main">
+      <main className="ml-[316px]">
         <GlobalHeader
           title="Accounting"
           crumbs={[
@@ -56,8 +56,8 @@ export default function JournalPage() {
                 ]}
         />
 
-        <section className="cc-section">
-          <h2 className="cc-page-title">
+        <section className="px-10 pb-10 pt-6">
+          <h2 className="text-xl font-semibold text-text-primary">
             Journal Entries
           </h2>
 
@@ -75,7 +75,7 @@ export default function JournalPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search"
                 aria-label="Search journal entries"
-                className="cc-control w-[320px] max-w-full pl-[42px] pr-3.5"
+                className="focus-ring h-10 w-[320px] max-w-full rounded-md border border-border-strong pl-[42px] pr-3.5 text-sm text-text-primary placeholder:text-text-muted"
               />
             </div>
 
@@ -83,14 +83,14 @@ export default function JournalPage() {
               <button
                 type="button"
                 onClick={() => setFilterOpen(true)}
-                className="cc-btn-secondary"
+                className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
               >
                 <SlidersHorizontal size={16} aria-hidden />
                 Filter
               </button>
               <button
                 type="button"
-                className="cc-btn-secondary"
+                className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
               >
                 Export
                 <Upload size={16} aria-hidden />
@@ -98,14 +98,14 @@ export default function JournalPage() {
               <button
                 type="button"
                 onClick={() => router.push("/accounting/journal/create")}
-                className="cc-btn-outline-primary px-4"
+                className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-primary bg-white px-4 text-sm font-medium text-primary transition-colors hover:bg-primary/5"
               >
                 Manual Journal
                 <Plus size={16} aria-hidden />
               </button>
               <button
                 type="button"
-                className="cc-btn-primary px-4"
+                className="focus-ring inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
               >
                 View Standard Booking
               </button>

@@ -83,7 +83,7 @@ export default function CoreAIPanel() {
       aria-modal="false"
       aria-labelledby="coreai-title"
       className={[
-        "fixed right-5 top-[86px] bottom-5 z-40 flex overflow-hidden rounded-2xl border border-border bg-surface shadow-overlay",
+        "fixed right-5 top-[86px] bottom-5 z-40 flex overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.18)] ring-1 ring-border",
         showingAttachments ? "w-[830px]" : "w-[450px]",
         "max-w-[calc(100vw-40px)]",
         phase === "enter" ? "coreai-panel-enter" : "coreai-panel-exit",
@@ -97,7 +97,7 @@ export default function CoreAIPanel() {
             id="coreai-title"
             className="text-sm font-semibold text-text-primary"
           >
-            Core AI
+            Core Ai
           </h2>
           <div className="flex items-center gap-2">
             <HeaderIcon label="Open Core AI options">
@@ -175,7 +175,7 @@ function HeaderIcon({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg bg-bg-sub text-text-secondary hover:bg-border"
+      className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg bg-[#EEF0F2] text-text-secondary hover:bg-[#E2E5E9]"
     >
       {children}
     </button>

@@ -12,25 +12,17 @@
 
 :root {
   --font-geist: "Geist";
-  --cc-bg-weak: #f5f7fa;
-  --cc-bg-surface: #ffffff;
-  --cc-border: #e1e4ea;
-  --cc-border-soft: #eef1f5;
-  --cc-text-primary: #0e121b;
-  --cc-text-secondary: #525866;
-  --cc-text-muted: #99a0ae;
-  --cc-primary: #335cff;
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--cc-bg-weak);
-  color: var(--cc-text-primary);
-  font-family: Inter, var(--font-geist), system-ui, -apple-system, BlinkMacSystemFont,
+  background: #ffffff;
+  color: #111827;
+  font-family: var(--font-geist), system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  letter-spacing: -0.011em;
+  letter-spacing: -0.02em;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -39,102 +31,28 @@ body {
   box-sizing: border-box;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
-}
-
-::selection {
-  background: rgba(51, 92, 255, 0.14);
-}
-
+/* Thin custom scrollbar to keep the calm enterprise feel */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cacfd8;
-  border: 2px solid transparent;
-  border-radius: 999px;
-  background-clip: content-box;
+  background: #dde3ea;
+  border-radius: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 
+/* Reusable focus ring for accessibility */
 .focus-ring:focus-visible {
-  outline: 2px solid rgba(51, 92, 255, 0.72);
+  outline: 2px solid #3157f6;
   outline-offset: 2px;
 }
 
-@layer components {
-  .cc-page {
-    @apply min-h-screen bg-bg-weak text-text-primary;
-  }
-
-  .cc-main {
-    @apply ml-[316px];
-  }
-
-  .cc-section {
-    @apply px-8 pb-10 pt-6;
-  }
-
-  .cc-page-title {
-    @apply font-display text-[20px] font-semibold leading-7 tracking-[-0.015em] text-text-primary;
-  }
-
-  .cc-card {
-    @apply rounded-xl border border-border bg-surface shadow-xs;
-  }
-
-  .cc-control {
-    @apply focus-ring h-10 rounded-lg border border-border bg-surface px-3.5 text-sm text-text-primary shadow-xs transition-colors placeholder:text-text-muted hover:border-border-strong;
-  }
-
-  .cc-control-lg {
-    @apply focus-ring h-[46px] rounded-lg border border-border bg-surface px-3.5 text-sm text-text-primary shadow-xs transition-colors placeholder:text-text-muted hover:border-border-strong;
-  }
-
-  .cc-btn {
-    @apply focus-ring inline-flex h-10 items-center justify-center gap-2 rounded-lg px-3.5 text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-60;
-  }
-
-  .cc-btn-secondary {
-    @apply cc-btn border border-border bg-surface text-text-secondary shadow-xs hover:border-border-strong hover:bg-bg-sub hover:text-text-primary;
-  }
-
-  .cc-btn-primary {
-    @apply cc-btn bg-primary text-white shadow-xs hover:bg-primary-hover;
-  }
-
-  .cc-btn-outline-primary {
-    @apply cc-btn border border-primary bg-surface text-primary shadow-xs hover:bg-primary-soft;
-  }
-
-  .cc-table-wrap {
-    @apply mt-4 overflow-hidden rounded-xl border border-border bg-surface shadow-xs;
-  }
-
-  .cc-table {
-    @apply w-full border-collapse;
-  }
-
-  .cc-th {
-    @apply border-b border-border bg-bg-sub px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.03em] text-text-secondary;
-  }
-
-  .cc-td {
-    @apply border-b border-border-soft px-4 py-4 align-middle text-sm text-text-primary;
-  }
-
-  .cc-modal-panel {
-    @apply rounded-2xl border border-border bg-surface shadow-overlay;
-  }
-}
-
+/* Apple-style floating panel enter/exit
+ * Subtle scale + opacity + slight slide-in from right.
+ */
 @keyframes coreai-enter {
   from {
     opacity: 0;
@@ -158,11 +76,144 @@ textarea {
 }
 
 .coreai-panel-enter {
-  animation: coreai-enter 220ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation: coreai-enter 260ms cubic-bezier(0.32, 0.72, 0, 1) both;
   transform-origin: top right;
 }
 
 .coreai-panel-exit {
-  animation: coreai-exit 180ms cubic-bezier(0.4, 0, 1, 1) both;
+  animation: coreai-exit 200ms cubic-bezier(0.4, 0, 1, 1) both;
   transform-origin: top right;
+}
+
+/* ============================================================
+ * Core AI conversation streaming animations
+ * ============================================================ */
+
+/* Fade + rise — used for user bubbles, revealed thinking lines,
+ * the feedback row, and chart cards as they appear. */
+@keyframes coreai-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.coreai-fade-up {
+  animation: coreai-fade-up 320ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* Slow rotation for the sparkle mark while the assistant works. */
+@keyframes coreai-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.coreai-spin {
+  animation: coreai-spin 2.4s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+/* Shimmer sweep across the "Thinking" / "Researching" label text. */
+@keyframes coreai-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.coreai-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #8a93a3 0%,
+    #8a93a3 35%,
+    #111827 50%,
+    #8a93a3 65%,
+    #8a93a3 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: coreai-shimmer 1.6s linear infinite;
+}
+
+/* Three bouncing dots for the working indicator. */
+.coreai-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: #8a93a3;
+  display: inline-block;
+  animation: coreai-bounce 1.2s ease-in-out infinite;
+}
+.coreai-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.coreai-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes coreai-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* Blinking caret at the end of the streaming answer text. */
+@keyframes coreai-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+.coreai-caret {
+  margin-left: 1px;
+  color: #3157f6;
+  font-weight: 400;
+  animation: coreai-blink 1s step-end infinite;
+}
+
+/* Bars in the bar chart grow from the left as they appear. */
+@keyframes coreai-bar-grow {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+.coreai-bar-grow {
+  transform-origin: left center;
+  animation: coreai-bar-grow 520ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  .coreai-fade-up,
+  .coreai-spin,
+  .coreai-shimmer-text,
+  .coreai-dot,
+  .coreai-caret,
+  .coreai-bar-grow {
+    animation: none !important;
+  }
+  .coreai-shimmer-text {
+    -webkit-text-fill-color: #111827;
+  }
 }

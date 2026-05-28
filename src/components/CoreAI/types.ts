@@ -1,14 +1,45 @@
-// Core AI types and mock response engine.
-// Banking-context responses for ChainCore.
+// Core AI types and response engine for ChainCore.
+//
+// This is an OFFLINE engine (no backend / no API key) but it is built to FEEL
+// real: it parses free-form questions, computes answers and charts from the
+// expanded mock dataset in `@/data/coreaiData`, carries multi-turn context so
+// follow-ups work, and falls back conversationally instead of dead-ending.
+//
+// SAFETY: every "thinking" / "researching" line is curated, user-safe status
+// text — never raw model chain-of-thought — per the banking-safety guidance.
+// Copy stays banking-appropriate (maker-checker, CBN returns, ₦, chaincore.ng).
+
+import {
+  MONTHS,
+  MONTHLY_INCOME,
+  MONTHLY_EXPENSE,
+  MONTHS_POSTED,
+  ytd,
+  EXPENSE_BY_CATEGORY,
+  BRANCH_POSITIONS,
+  GROUP_CASH,
+  BS_HEADLINES,
+  ASSET_MIX,
+  TOP_ACCOUNTS,
+  PENDING_APPROVALS,
+  PENDING_TOTAL,
+  TRIAL_BALANCE_TOTALS,
+  CBN_RETURNS,
+  naira,
+  nairaShort,
+  FISCAL_YEAR,
+} from "@/data/coreaiData";
+
+// ----------------------------------------------------------------- Chart types
 
 export interface ChartLineResponse {
   kind: "line";
-  title: string; // e.g. "Revenue"
-  period: string; // e.g. "2024"
-  tabs: string[]; // ["1M","6M","YTD","1YR"]
+  title: string;
+  period: string;
+  tabs: string[];
   activeTab: string;
-  xLabels: string[]; // ["Jan","Feb",...]
-  series: number[]; // values aligned to xLabels
+  xLabels: string[];
+  series: number[];
 }
 
 export interface PieSlice {
@@ -20,12 +51,31 @@ export interface PieSlice {
 
 export interface ChartPieResponse {
   kind: "pie";
-  title: string; // e.g. "Asset Allocation"
-  period: string; // e.g. "This Quarter"
+  title: string;
+  period: string;
   slices: PieSlice[];
 }
 
-export type ChartResponse = ChartLineResponse | ChartPieResponse;
+export interface BarDatum {
+  label: string;
+  value: number; // raw value used for bar length
+  display: string; // formatted value shown at row end
+  color?: string;
+}
+
+export interface ChartBarResponse {
+  kind: "bar";
+  title: string;
+  period: string;
+  bars: BarDatum[];
+}
+
+export type ChartResponse =
+  | ChartLineResponse
+  | ChartPieResponse
+  | ChartBarResponse;
+
+// ------------------------------------------------------------- Attachments
 
 export interface AttachmentDoc {
   id: string;
@@ -39,24 +89,37 @@ export interface AttachmentImage {
   id: string;
   name: string;
 }
-
 export interface Attachments {
   documents: AttachmentDoc[];
   links: AttachmentLink[];
   images: AttachmentImage[];
 }
 
+// ---------------------------------------------------------------- Messages
+
+// Lifecycle phases used by the streaming renderer.
+export type AssistantPhase =
+  | "thinking"
+  | "researching"
+  | "answering"
+  | "done";
+
 export interface AssistantMessage {
   id: string;
   role: "assistant";
-  // safer, banking-appropriate "thinking" lines (curated status text, not raw CoT)
+  // curated status lines (NOT raw chain-of-thought)
   thinking: string[];
-  // duration shown in collapsed header e.g. "Thought for 5 seconds"
   thinkingSeconds: number;
   researching: string;
-  answer: string; // plain-text summary
+  answer: string;
   chart?: ChartResponse;
   attachments?: Attachments;
+  // streaming state — driven by the provider as the response "plays"
+  phase: AssistantPhase;
+  // index of thinking lines revealed so far (for the live animation)
+  revealedThinking: number;
+  // characters of `answer` revealed so far (for the typing effect)
+  revealedChars: number;
 }
 
 export interface UserMessage {
@@ -67,224 +130,497 @@ export interface UserMessage {
 
 export type CoreAIMessage = AssistantMessage | UserMessage;
 
-// ---------------------------------------------------------------- Mock data
+// Topic carried between turns so follow-ups ("break that down by branch",
+// "compare to last month") resolve against the right subject.
+export type Topic =
+  | "cash"
+  | "expenses"
+  | "income"
+  | "revenue"
+  | "net"
+  | "assets"
+  | "trial-balance"
+  | "approvals"
+  | "top-accounts"
+  | "cbn"
+  | "clients"
+  | "none";
 
-const REVENUE_SERIES = [
-  // upward-trending with small fluctuations
-  120, 132, 128, 145, 152, 160, 175, 168, 182, 190, 205, 218, 228, 235, 244, 252,
-];
+export interface ConversationContext {
+  topic: Topic;
+}
 
-const REVENUE_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"];
-
-// Banking-appropriate substitute for the screenshot's "Work Mode" pie.
-// Asset Allocation across major balance-sheet categories.
-const ASSET_ALLOCATION: PieSlice[] = [
-  { label: "Loans & Advances", value: 45, detail: "₦18,000,000,000", color: "#1E2A78" },
-  { label: "Cash & Investments", value: 30, detail: "₦12,000,000,000", color: "#3157F6" },
-  { label: "Fixed Assets", value: 15, detail: "₦6,000,000,000", color: "#7B96FF" },
-  { label: "Other Assets", value: 10, detail: "₦4,000,000,000", color: "#BFCEFF" },
-];
+// --------------------------------------------------------- sample attachments
 
 const SAMPLE_ATTACHMENTS: Attachments = {
   documents: [
     { id: "d1", name: "Trial-Balance-Q2-2026.pdf" },
     { id: "d2", name: "CBN-Prudential-Returns.pdf" },
-    { id: "d3", name: "Branch-Performance-March.pdf" },
+    { id: "d3", name: "Branch-Performance-May.pdf" },
     { id: "d4", name: "GL-Reconciliation-Summary.pdf" },
   ],
   links: [
-    { id: "l1", label: "ledger.chaincore.ng/reports" },
-    { id: "l2", label: "ledger.chaincore.ng/reports" },
-    { id: "l3", label: "ledger.chaincore.ng/reports" },
-    { id: "l4", label: "ledger.chaincore.ng/reports" },
+    { id: "l1", label: "ledger.chaincore.ng/reports/balance-sheet" },
+    { id: "l2", label: "ledger.chaincore.ng/reports/trial-balance" },
+    { id: "l3", label: "ledger.chaincore.ng/approvals/pending" },
+    { id: "l4", label: "ledger.chaincore.ng/returns/cbn" },
   ],
   images: [
-    { id: "i1", name: "balance-snapshot.png" },
+    { id: "i1", name: "cash-position-snapshot.png" },
     { id: "i2", name: "revenue-trend.png" },
     { id: "i3", name: "branch-heatmap.png" },
-    { id: "i4", name: "fx-exposure.png" },
+    { id: "i4", name: "expense-breakdown.png" },
   ],
 };
 
-// ----------------------------------------------------- Mock response engine
+// ------------------------------------------------------------- ID helpers
 
 let messageCounter = 0;
 const nextId = (prefix: string) => `${prefix}-${++messageCounter}`;
-
-function clean(s: string): string {
-  return s.trim().toLowerCase().replace(/[?!.]+$/, "");
-}
-
-/**
- * Map a user prompt to a banking-flavored assistant response.
- * All "thinking" lines are curated, user-safe status messages (not raw model
- * chain-of-thought) per the banking-safety guidance in the spec.
- */
-export function buildAssistantResponse(prompt: string): AssistantMessage {
-  const p = clean(prompt);
-
-  // -- Balance summary ----------------------------------------------------
-  if (
-    p.includes("balance") &&
-    (p.includes("view") || p.includes("show") || p.includes("asset"))
-  ) {
-    return {
-      id: nextId("a"),
-      role: "assistant",
-      thinking: [
-        "Checking your branch permissions for balance access",
-        "Pulling the latest General Ledger totals",
-        "Aggregating Assets, Liabilities, Equity and Income",
-      ],
-      thinkingSeconds: 5,
-      researching: "Reading General Ledger as of close of business yesterday.",
-      answer:
-        "Asset Balance for 2026 is ₦30,000,000,000. Liabilities total ₦20,000,000, Equity is ₦10,000,000,000, and Income year-to-date is ₦5,000,000,000.",
-      attachments: SAMPLE_ATTACHMENTS,
-    };
-  }
-
-  // -- Revenue chart -------------------------------------------------------
-  if (p.includes("revenue") || p.includes("income chart")) {
-    return {
-      id: nextId("a"),
-      role: "assistant",
-      thinking: [
-        "Identifying the requested revenue period",
-        "Reading posted Income GL entries for the year",
-        "Preparing the trend chart for the selected range",
-      ],
-      thinkingSeconds: 5,
-      researching: "Looking for relevant data.",
-      answer:
-        "Here's your revenue trend for 2024. Year-to-date revenue is up roughly 21% versus the same period last year, driven mainly by interest income on loans.",
-      chart: {
-        kind: "line",
-        title: "Revenue",
-        period: "2024",
-        tabs: ["1M", "6M", "YTD", "1YR"],
-        activeTab: "1YR",
-        xLabels: REVENUE_LABELS,
-        series: REVENUE_SERIES.slice(0, 8),
-      },
-    };
-  }
-
-  // -- Asset allocation / "price chart" substitute ------------------------
-  if (
-    p.includes("allocation") ||
-    p.includes("price chart") ||
-    p.includes("asset mix") ||
-    p.includes("portfolio")
-  ) {
-    return {
-      id: nextId("a"),
-      role: "assistant",
-      thinking: [
-        "Reading the latest balance-sheet snapshot",
-        "Grouping balances by asset category",
-        "Building the allocation breakdown",
-      ],
-      thinkingSeconds: 4,
-      researching: "Computing share of total assets by category.",
-      answer:
-        "Here's the asset allocation across the major balance-sheet categories. Loans & Advances remain the largest exposure at 45% of total assets.",
-      chart: {
-        kind: "pie",
-        title: "Asset Allocation",
-        period: "This Quarter",
-        slices: ASSET_ALLOCATION,
-      },
-    };
-  }
-
-  // -- Add journal entry --------------------------------------------------
-  if (p.includes("add journal") || p.includes("journal entry")) {
-    return {
-      id: nextId("a"),
-      role: "assistant",
-      thinking: [
-        "Confirming your posting permissions",
-        "Opening the Manual Journal Entry form",
-      ],
-      thinkingSeconds: 3,
-      researching: "Preparing a draft.",
-      answer:
-        "I can take you to the Manual Journal Entry form so you can post a new entry. Sensitive posting actions still require your approval before they're committed to the ledger.",
-    };
-  }
-
-  // -- View clients --------------------------------------------------------
-  if (p.includes("client") || p.includes("customer")) {
-    return {
-      id: nextId("a"),
-      role: "assistant",
-      thinking: [
-        "Checking customer access permissions for your role",
-        "Pulling the customer directory for your branch",
-      ],
-      thinkingSeconds: 4,
-      researching: "Retrieving customer summary.",
-      answer:
-        "Your branch currently has 1,284 active customers. The top-five customers by deposit balance account for ₦4.2bn (≈14% of total deposits).",
-    };
-  }
-
-  // -- Create new product --------------------------------------------------
-  if (p.includes("create") && p.includes("product")) {
-    return {
-      id: nextId("a"),
-      role: "assistant",
-      thinking: [
-        "Verifying product-management permissions",
-        "Loading the product configuration template",
-      ],
-      thinkingSeconds: 3,
-      researching: "Preparing product setup.",
-      answer:
-        "I can help draft a new product (e.g. a savings or loan product), but final activation requires maker-checker approval and a product-config review before it can accept transactions.",
-    };
-  }
-
-  // -- Update user role ----------------------------------------------------
-  if (p.includes("user role") || p.includes("update role")) {
-    return {
-      id: nextId("a"),
-      role: "assistant",
-      thinking: [
-        "Verifying admin permissions",
-        "Loading the user-role matrix",
-      ],
-      thinkingSeconds: 4,
-      researching: "Preparing role update.",
-      answer:
-        "Role changes are sensitive and require an approving officer. I can prepare the change for review, but it won't take effect until it's approved in the user-management workflow.",
-    };
-  }
-
-  // -- Fallback ------------------------------------------------------------
-  return {
-    id: nextId("a"),
-    role: "assistant",
-    thinking: [
-      "Checking what data is available for your request",
-      "Looking across accounting, customer, and product modules",
-    ],
-    thinkingSeconds: 3,
-    researching: "Searching ChainCore.",
-    answer:
-      "I'm not sure I have a precise match for that yet. Try asking about your balance sheet, revenue trend, asset allocation, journal entries, customers, or product setup.",
-  };
-}
 
 export function buildUserMessage(text: string): UserMessage {
   return { id: nextId("u"), role: "user", text };
 }
 
+// Build a fresh assistant message in its initial (pre-stream) state.
+function assistant(
+  partial: Omit<
+    AssistantMessage,
+    "id" | "role" | "phase" | "revealedThinking" | "revealedChars"
+  >
+): AssistantMessage {
+  return {
+    id: nextId("a"),
+    role: "assistant",
+    phase: "thinking",
+    revealedThinking: 0,
+    revealedChars: 0,
+    ...partial,
+  };
+}
+
+// ---------------------------------------------------------- intent parsing
+
+function clean(s: string): string {
+  return s.trim().toLowerCase();
+}
+
+function hasAny(p: string, words: string[]): boolean {
+  return words.some((w) => p.includes(w));
+}
+
+// Detect a time window mentioned in the prompt.
+function detectPeriod(p: string): { label: string; count: number } {
+  if (hasAny(p, ["this month", "current month", "mtd"]))
+    return { label: `${MONTHS[MONTHS_POSTED - 1]} ${FISCAL_YEAR}`, count: MONTHS_POSTED };
+  if (hasAny(p, ["last month", "previous month"]))
+    return { label: `${MONTHS[MONTHS_POSTED - 2]} ${FISCAL_YEAR}`, count: MONTHS_POSTED - 1 };
+  if (hasAny(p, ["q1", "first quarter"]))
+    return { label: `Q1 ${FISCAL_YEAR}`, count: 3 };
+  if (hasAny(p, ["q2", "second quarter"]))
+    return { label: `Q2 ${FISCAL_YEAR}`, count: 6 };
+  if (hasAny(p, ["6 month", "six month", "half year", "h1"]))
+    return { label: `H1 ${FISCAL_YEAR}`, count: 6 };
+  if (hasAny(p, ["year", "ytd", "annual", "12 month", "full year"]))
+    return { label: `${FISCAL_YEAR} YTD`, count: 12 };
+  return { label: `${FISCAL_YEAR} YTD`, count: MONTHS_POSTED };
+}
+
+function pctSlices(items: { label: string; amount: number; color: string }[]): PieSlice[] {
+  const total = items.reduce((s, x) => s + x.amount, 0) || 1;
+  return items.map((x) => ({
+    label: x.label,
+    value: Math.round((x.amount / total) * 100),
+    detail: naira(x.amount),
+    color: x.color,
+  }));
+}
+
+// ----------------------------------------------------------- the engine
+
+export function buildAssistantResponse(
+  prompt: string,
+  ctx: ConversationContext
+): { message: AssistantMessage; context: ConversationContext } {
+  const p = clean(prompt);
+
+  const wantsBranchBreakdown = hasAny(p, ["by branch", "per branch", "each branch", "branches"]);
+  const wantsCategoryBreakdown = hasAny(p, ["by category", "per category", "breakdown", "break down", "break it down"]);
+  const isBareFollowup =
+    p.length < 40 &&
+    hasAny(p, ["that", "those", "it", "this", "them", "more", "instead", "again"]) &&
+    !hasAny(p, ["balance", "cash", "expense", "revenue", "income", "asset", "client", "approval", "trial", "cbn"]);
+  // An income-vs-expense comparison must win over the plain expenses block,
+  // even though the text contains the word "expense".
+  const wantsComparison =
+    hasAny(p, ["income", "revenue", "profit", "net income"]) &&
+    hasAny(p, ["expense", "vs", "versus", "against", "compare", "comparison"]);
+
+  // -------------------------------------------------------- CASH POSITION
+  if (
+    hasAny(p, ["cash position", "cash across", "how much cash", "total cash", "liquidity", "cash do we have"]) ||
+    (hasAny(p, ["cash"]) && hasAny(p, ["branch", "total", "position", "have"])) ||
+    (ctx.topic === "cash" && (wantsBranchBreakdown || isBareFollowup))
+  ) {
+    const bars: BarDatum[] = BRANCH_POSITIONS.map((b) => ({
+      label: b.branch,
+      value: b.cash,
+      display: nairaShort(b.cash),
+      color: b.color,
+    }));
+    return {
+      context: { topic: "cash" },
+      message: assistant({
+        thinking: [
+          "Checking your branch-level access permissions",
+          "Reading available cash balances across all branches",
+          "Aggregating the group cash position",
+        ],
+        thinkingSeconds: 4,
+        researching: "Reading cash & balances GL as of close of business yesterday.",
+        answer: `Your total group cash position is ${naira(GROUP_CASH)} across ${BRANCH_POSITIONS.length} branches. Lagos (HQ) holds the largest share at ${naira(BRANCH_POSITIONS[0].cash)} (${Math.round((BRANCH_POSITIONS[0].cash / GROUP_CASH) * 100)}% of the total). Here's the breakdown by branch:`,
+        chart: { kind: "bar", title: "Cash by Branch", period: "As of yesterday", bars },
+        attachments: SAMPLE_ATTACHMENTS,
+      }),
+    };
+  }
+
+  // ------------------------------------------------------ EXPENSES (category)
+  if (
+    !wantsComparison &&
+    (hasAny(p, ["expense", "spend", "spent", "cost", "opex", "operating cost"]) ||
+      (ctx.topic === "expenses" && (wantsCategoryBreakdown || isBareFollowup)))
+  ) {
+    const period = detectPeriod(p);
+    if (hasAny(p, ["trend", "over time", "monthly", "month by month", "chart over"])) {
+      const series = MONTHLY_EXPENSE.slice(0, period.count);
+      return {
+        context: { topic: "expenses" },
+        message: assistant({
+          thinking: [
+            "Identifying the requested expense period",
+            "Reading posted expense GL entries month by month",
+            "Building the trend chart",
+          ],
+          thinkingSeconds: 4,
+          researching: "Aggregating expense GL postings by month.",
+          answer: `Here's your operating-expense trend for ${period.label}. Spend has grown steadily, ending at ${naira(series[series.length - 1])} in the latest posted month.`,
+          chart: {
+            kind: "line",
+            title: "Operating Expenses",
+            period: period.label,
+            tabs: ["3M", "6M", "YTD", "1YR"],
+            activeTab: "YTD",
+            xLabels: MONTHS.slice(0, period.count) as unknown as string[],
+            series,
+          },
+        }),
+      };
+    }
+    const bars: BarDatum[] = EXPENSE_BY_CATEGORY.map((c) => ({
+      label: c.label,
+      value: c.amount,
+      display: nairaShort(c.amount),
+      color: c.color,
+    }));
+    const total = EXPENSE_BY_CATEGORY.reduce((s, c) => s + c.amount, 0);
+    return {
+      context: { topic: "expenses" },
+      message: assistant({
+        thinking: [
+          "Confirming your reporting permissions",
+          "Reading expense GL postings for the period",
+          "Grouping spend by expense category",
+        ],
+        thinkingSeconds: 5,
+        researching: "Grouping posted expenses by category.",
+        answer: `Total operating expenses for ${period.label} are ${naira(total)}. Staff Costs are the largest line at ${naira(EXPENSE_BY_CATEGORY[0].amount)} (${Math.round((EXPENSE_BY_CATEGORY[0].amount / total) * 100)}%). Here's the breakdown by category:`,
+        chart: { kind: "bar", title: "Expenses by Category", period: period.label, bars },
+        attachments: SAMPLE_ATTACHMENTS,
+      }),
+    };
+  }
+
+  // ------------------------------------------- INCOME vs EXPENSE comparison
+  if (
+    (hasAny(p, ["income"]) && hasAny(p, ["expense", "vs", "versus", "against", "compare"])) ||
+    hasAny(p, ["profit", "net income", "bottom line", "income vs"])
+  ) {
+    const period = detectPeriod(p);
+    const inc = ytd(MONTHLY_INCOME);
+    const exp = ytd(MONTHLY_EXPENSE);
+    const net = inc - exp;
+    const bars: BarDatum[] = [
+      { label: "Income", value: inc, display: nairaShort(inc), color: "#3157F6" },
+      { label: "Expenses", value: exp, display: nairaShort(exp), color: "#1E2A78" },
+      { label: "Net", value: net, display: nairaShort(net), color: "#5B79FF" },
+    ];
+    return {
+      context: { topic: "net" },
+      message: assistant({
+        thinking: [
+          "Reading income and expense GL totals",
+          "Computing net income for the period",
+        ],
+        thinkingSeconds: 4,
+        researching: "Reconciling income vs expense postings.",
+        answer: `For ${period.label}, income is ${naira(inc)} against expenses of ${naira(exp)}, giving a net income of ${naira(net)} — a margin of ${Math.round((net / inc) * 100)}%.`,
+        chart: { kind: "bar", title: "Income vs Expenses", period: period.label, bars },
+      }),
+    };
+  }
+
+  // -------------------------------------------------- REVENUE / INCOME trend
+  if (hasAny(p, ["revenue", "income", "earnings", "turnover"])) {
+    const period = detectPeriod(p);
+    const series = MONTHLY_INCOME.slice(0, period.count);
+    const total = series.reduce((s, x) => s + x, 0);
+    return {
+      context: { topic: "revenue" },
+      message: assistant({
+        thinking: [
+          "Identifying the requested revenue period",
+          "Reading posted income GL entries for the range",
+          "Preparing the trend chart",
+        ],
+        thinkingSeconds: 5,
+        researching: "Looking across interest income, fees and FX lines.",
+        answer: `Here's your revenue trend for ${period.label}. Total income over the period is ${naira(total)}, driven mainly by interest income on loans, and rising month-on-month.`,
+        chart: {
+          kind: "line",
+          title: "Revenue",
+          period: period.label,
+          tabs: ["3M", "6M", "YTD", "1YR"],
+          activeTab: "YTD",
+          xLabels: MONTHS.slice(0, period.count) as unknown as string[],
+          series,
+        },
+      }),
+    };
+  }
+
+  // ---------------------------------------------------------- ASSET MIX
+  if (
+    hasAny(p, ["asset allocation", "asset mix", "allocation", "portfolio", "balance sheet", "assets"]) ||
+    (ctx.topic === "assets" && isBareFollowup)
+  ) {
+    if (hasAny(p, ["allocation", "mix", "portfolio", "breakdown", "by category"])) {
+      return {
+        context: { topic: "assets" },
+        message: assistant({
+          thinking: [
+            "Reading the latest balance-sheet snapshot",
+            "Grouping balances by asset class",
+            "Building the allocation breakdown",
+          ],
+          thinkingSeconds: 4,
+          researching: "Computing share of total assets by class.",
+          answer: `Here's the asset allocation across the major balance-sheet classes. Loans & Advances remain the largest exposure at ${naira(ASSET_MIX[0].amount)}.`,
+          chart: { kind: "pie", title: "Asset Allocation", period: "This Quarter", slices: pctSlices(ASSET_MIX) },
+        }),
+      };
+    }
+    return {
+      context: { topic: "assets" },
+      message: assistant({
+        thinking: [
+          "Checking your access to balance-sheet reporting",
+          "Pulling the latest General Ledger totals",
+          "Summarising Assets, Liabilities and Equity",
+        ],
+        thinkingSeconds: 5,
+        researching: "Reading the balance sheet as of close of business yesterday.",
+        answer: `Total assets stand at ${naira(BS_HEADLINES.totalAssets)}, against liabilities of ${naira(BS_HEADLINES.totalLiabilities)}, leaving equity of ${naira(BS_HEADLINES.totalEquity)}. Loans & advances are ${naira(BS_HEADLINES.loansAndAdvances)} and customer deposits are ${naira(BS_HEADLINES.customerDeposits)}.`,
+        chart: { kind: "pie", title: "Asset Allocation", period: "This Quarter", slices: pctSlices(ASSET_MIX) },
+        attachments: SAMPLE_ATTACHMENTS,
+      }),
+    };
+  }
+
+  // ------------------------------------------------------- TRIAL BALANCE
+  if (hasAny(p, ["trial balance", "balanced", "debit", "credit", "out of balance", "off by"])) {
+    const { debit, credit } = TRIAL_BALANCE_TOTALS;
+    const diff = debit - credit;
+    const balanced = diff === 0;
+    return {
+      context: { topic: "trial-balance" },
+      message: assistant({
+        thinking: [
+          "Reading total debit and credit postings",
+          "Comparing the two control totals",
+        ],
+        thinkingSeconds: 3,
+        researching: "Summing all posted debits and credits.",
+        answer: balanced
+          ? `Your trial balance is in balance. Total debits and total credits both equal ${naira(debit)}, so the difference is ₦0. You're clear to proceed to reporting.`
+          : `Your trial balance is out by ${naira(Math.abs(diff))}. Debits total ${naira(debit)} and credits total ${naira(credit)}. The most common cause is a one-sided or partially-posted journal — I'd start by reviewing entries still pending approval.`,
+      }),
+    };
+  }
+
+  // ---------------------------------------------------- PENDING APPROVALS
+  if (
+    hasAny(p, ["pending", "awaiting approval", "approve", "approval", "maker", "checker", "to approve", "sign off"])
+  ) {
+    const lines = PENDING_APPROVALS.map(
+      (a) => `• ${a.id} — ${a.description}: ${naira(a.amount)} (raised by ${a.maker}, ${a.submitted})`
+    ).join("\n");
+    return {
+      context: { topic: "approvals" },
+      message: assistant({
+        thinking: [
+          "Checking your approver role and limits",
+          "Reading the maker-checker queue",
+          "Listing entries awaiting your sign-off",
+        ],
+        thinkingSeconds: 4,
+        researching: "Reading the pending maker-checker queue.",
+        answer: `You have ${PENDING_APPROVALS.length} journal entries awaiting approval, totalling ${naira(PENDING_TOTAL)}:\n\n${lines}\n\nThese remain uncommitted to the ledger until an authorised checker approves them.`,
+        attachments: SAMPLE_ATTACHMENTS,
+      }),
+    };
+  }
+
+  // ----------------------------------------------------- TOP ACCOUNTS
+  if (hasAny(p, ["top account", "highest balance", "largest account", "biggest account", "top gl", "largest balance"])) {
+    const bars: BarDatum[] = TOP_ACCOUNTS.map((a) => ({
+      label: a.code,
+      value: a.balance,
+      display: nairaShort(a.balance),
+      color: "#3157F6",
+    }));
+    const list = TOP_ACCOUNTS.map((a) => `• ${a.code} ${a.name} — ${naira(a.balance)}`).join("\n");
+    return {
+      context: { topic: "top-accounts" },
+      message: assistant({
+        thinking: [
+          "Reading GL account balances",
+          "Ranking accounts by closing balance",
+        ],
+        thinkingSeconds: 3,
+        researching: "Sorting the General Ledger by balance.",
+        answer: `Your five largest GL accounts by balance are:\n\n${list}`,
+        chart: { kind: "bar", title: "Top Accounts by Balance", period: "Current", bars },
+      }),
+    };
+  }
+
+  // ---------------------------------------------------------------- CBN
+  if (hasAny(p, ["cbn", "prudential", "regulatory return", "returns", "capital adequacy", "compliance"])) {
+    return {
+      context: { topic: "cbn" },
+      message: assistant({
+        thinking: [
+          "Checking compliance-module access",
+          "Reading regulatory ratios and outstanding items",
+        ],
+        thinkingSeconds: 4,
+        researching: "Reading CBN Prudential Returns status.",
+        answer: `Your next CBN Prudential Return is due ${CBN_RETURNS.nextDue}. Capital Adequacy Ratio is ${CBN_RETURNS.capitalAdequacyRatio}% (regulatory minimum 15%) and Liquidity Ratio is ${CBN_RETURNS.liquidityRatio}% (minimum 30%) — both comfortably above threshold. There ${CBN_RETURNS.outstandingItems === 1 ? "is" : "are"} ${CBN_RETURNS.outstandingItems} outstanding reconciliation item${CBN_RETURNS.outstandingItems === 1 ? "" : "s"} to clear before submission.`,
+        attachments: SAMPLE_ATTACHMENTS,
+      }),
+    };
+  }
+
+  // ------------------------------------------------------------ CLIENTS
+  if (hasAny(p, ["client", "customer", "depositor", "account holder"])) {
+    return {
+      context: { topic: "clients" },
+      message: assistant({
+        thinking: [
+          "Checking customer-access permissions for your role",
+          "Reading the customer directory for your branch",
+        ],
+        thinkingSeconds: 4,
+        researching: "Retrieving customer summary.",
+        answer: `Your branch currently has 1,284 active customers. The top five by deposit balance hold ${naira(4_200_000_000)} between them, about 14% of total deposits.`,
+      }),
+    };
+  }
+
+  // ------------------------------------------------------- ACTION: journal
+  if (hasAny(p, ["add journal", "journal entry", "post entry", "manual journal", "new entry"])) {
+    return {
+      context: { topic: "none" },
+      message: assistant({
+        thinking: [
+          "Confirming your posting permissions",
+          "Preparing the Manual Journal Entry form",
+        ],
+        thinkingSeconds: 3,
+        researching: "Setting up a draft entry.",
+        answer: "I can take you to the Manual Journal Entry form to post a new entry. Note that posted entries still go through maker-checker approval before they're committed to the ledger.",
+      }),
+    };
+  }
+
+  // ------------------------------------------------------- ACTION: product
+  if (hasAny(p, ["create product", "new product", "set up product", "product setup"])) {
+    return {
+      context: { topic: "none" },
+      message: assistant({
+        thinking: [
+          "Verifying product-management permissions",
+          "Loading the product configuration template",
+        ],
+        thinkingSeconds: 3,
+        researching: "Preparing product setup.",
+        answer: "I can help draft a new savings or loan product, but final activation requires maker-checker approval and a product-config review before it can accept transactions.",
+      }),
+    };
+  }
+
+  // ----------------------------------------------------- ACTION: user role
+  if (hasAny(p, ["user role", "update role", "permission", "access right", "change role"])) {
+    return {
+      context: { topic: "none" },
+      message: assistant({
+        thinking: [
+          "Verifying admin permissions",
+          "Loading the user-role matrix",
+        ],
+        thinkingSeconds: 4,
+        researching: "Preparing role update.",
+        answer: "Role changes are sensitive and need an approving officer. I can prepare the change for review, but it won't take effect until it's approved in the user-management workflow.",
+      }),
+    };
+  }
+
+  // ------------------------------------------------- Greeting / smalltalk
+  if (hasAny(p, ["hello", "hi ", "hey", "good morning", "good afternoon"]) && p.length < 25) {
+    return {
+      context: { topic: "none" },
+      message: assistant({
+        thinking: ["Getting your workspace context ready"],
+        thinkingSeconds: 1,
+        researching: "",
+        answer: "Hello! I'm Core AI. I can help you with your cash position, revenue and expenses, the balance sheet, trial balance, pending approvals, CBN returns, and more. What would you like to look at?",
+      }),
+    };
+  }
+
+  // ---------------------------------------------------- Conversational fallback
+  return {
+    context: { topic: ctx.topic },
+    message: assistant({
+      thinking: [
+        "Checking which modules can answer this",
+        "Looking across accounting, customer and compliance data",
+      ],
+      thinkingSeconds: 2,
+      researching: "Searching ChainCore.",
+      answer:
+        "I want to make sure I pull the right figures. I can help with things like your cash position by branch, revenue or expense trends, expenses by category, income vs expenses, the balance sheet and asset mix, whether your trial balance is balanced, journal entries pending approval, your top GL accounts, or CBN Prudential Returns. Which of those is closest to what you need?",
+    }),
+  };
+}
+
+// --------------------------------------------------------- suggested prompts
+
 export const SUGGESTED_PROMPTS: string[] = [
-  "Add Journal Entry",
-  "View Balance",
-  "Create New Product",
-  "View Clients",
-  "Update user role",
+  "What's our total cash position by branch?",
+  "Show me revenue trend this year",
+  "Break expenses down by category",
+  "Is my trial balance balanced?",
+  "What journal entries are pending approval?",
 ];

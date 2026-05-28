@@ -41,29 +41,29 @@ export default function TrialBalanceTable({
   );
 
   return (
-    <div className="cc-table-wrap overflow-x-auto">
-      <table className="cc-table min-w-[1100px]">
+    <div className="mt-4 overflow-x-auto">
+      <table className="w-full min-w-[1100px] border-collapse">
         <thead>
-          <tr className="text-left">
-            <th className="cc-th px-6">
+          <tr className="bg-surface-muted text-left">
+            <th className="px-6 py-3 text-[13px] font-medium text-text-primary">
               Code
             </th>
-            <th className="cc-th">
+            <th className="px-4 py-3 text-[13px] font-medium text-text-primary">
               Account Name
             </th>
-            <th className="cc-th text-right">
+            <th className="px-4 py-3 text-right text-[13px] font-medium text-text-primary">
               Opening Balance
             </th>
-            <th className="cc-th text-right">
+            <th className="px-4 py-3 text-right text-[13px] font-medium text-text-primary">
               Debit
             </th>
-            <th className="cc-th text-right">
+            <th className="px-4 py-3 text-right text-[13px] font-medium text-text-primary">
               Credit
             </th>
-            <th className="cc-th text-right">
+            <th className="px-4 py-3 text-right text-[13px] font-medium text-text-primary">
               Net Change
             </th>
-            <th className="cc-th px-6 text-right">
+            <th className="px-6 py-3 text-right text-[13px] font-medium text-text-primary">
               Closing Balance
             </th>
           </tr>
@@ -96,8 +96,8 @@ export default function TrialBalanceTable({
               <tr
                 key={row.id}
                 className={[
-                  "transition-colors",
-                  isSection ? "bg-surface-muted/60" : "hover:bg-bg-sub/40",
+                  "border-b border-border transition-colors",
+                  isSection ? "bg-surface-muted/60" : "hover:bg-surface-muted/40",
                 ].join(" ")}
               >
                 {/* Code cell */}

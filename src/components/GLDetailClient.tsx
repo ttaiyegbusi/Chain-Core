@@ -43,7 +43,7 @@ export default function GLDetailClient({ accountId }: { accountId: string }) {
 
   if (!account) {
     return (
-      <div className="cc-page">
+      <div className="min-h-screen bg-white">
         <PrimaryRail />
         <main className="ml-[66px] p-10">
           <p className="text-sm text-text-muted">Account not found.</p>
@@ -61,7 +61,7 @@ export default function GLDetailClient({ accountId }: { accountId: string }) {
   const title = `${account.code} - ${account.name}`;
 
   return (
-    <div className="cc-page">
+    <div className="min-h-screen bg-white">
       <PrimaryRail />
 
       <main className="ml-[66px] pb-[90px]">
@@ -99,14 +99,14 @@ export default function GLDetailClient({ accountId }: { accountId: string }) {
             <button
               type="button"
               onClick={() => setEditing((e) => !e)}
-              className="focus-ring inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+              className="focus-ring inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
             >
               {editing ? "Save GL" : "Edit GL"}
             </button>
             <button
               type="button"
               aria-label="More options"
-              className="focus-ring flex h-10 w-10 items-center justify-center rounded-lg border border-border-strong text-text-secondary hover:bg-bg-sub"
+              className="focus-ring flex h-10 w-10 items-center justify-center rounded-md border border-border-strong text-text-secondary hover:bg-surface-muted"
             >
               <MoreVertical size={18} aria-hidden />
             </button>
@@ -194,7 +194,7 @@ export default function GLDetailClient({ accountId }: { accountId: string }) {
 
       {/* Sticky footer only while editing */}
       {editing && (
-        <div className="fixed bottom-0 left-[66px] right-0 z-20 flex h-[72px] items-center justify-end gap-6 border-t border-border bg-surface px-11">
+        <div className="fixed bottom-0 left-[66px] right-0 z-20 flex h-[72px] items-center justify-end gap-6 border-t border-border bg-white px-11">
           <button
             type="button"
             onClick={() => setEditing(false)}
@@ -205,7 +205,7 @@ export default function GLDetailClient({ accountId }: { accountId: string }) {
           <button
             type="button"
             onClick={() => setEditing(false)}
-            className="focus-ring inline-flex h-10 w-[180px] items-center justify-center rounded-lg bg-primary text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+            className="focus-ring inline-flex h-10 w-[180px] items-center justify-center rounded-md bg-primary text-sm font-medium text-white transition-colors hover:bg-primary-hover"
           >
             Save Changes
           </button>

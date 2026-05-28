@@ -16,11 +16,11 @@ export default function Welcome({
         <div className="mb-3 flex h-12 w-12 items-center justify-center">
           <Logo size={48} />
         </div>
-        <h2 className="font-display text-base font-semibold text-text-primary">
+        <h2 className="text-base font-semibold text-text-primary">
           Hello Temitope!
         </h2>
         <p className="mt-1 text-xs text-text-secondary">
-          This is Core AI, how can I help today?
+          This is Core Ai, how can I help today?
         </p>
       </div>
 
@@ -38,7 +38,7 @@ export default function Welcome({
               key={p}
               type="button"
               onClick={() => onPromptClick(p)}
-              className="focus-ring inline-flex items-center gap-2 rounded-lg bg-bg-sub px-3 py-1.5 text-xs text-text-secondary transition-colors hover:bg-border-soft"
+              className="focus-ring inline-flex items-center gap-2 rounded-md bg-[#F7F7F7] px-3 py-1.5 text-xs text-text-secondary transition-colors hover:bg-[#ECECEC]"
             >
               <Sparkles size={14} className="text-primary" aria-hidden />
               {p}
