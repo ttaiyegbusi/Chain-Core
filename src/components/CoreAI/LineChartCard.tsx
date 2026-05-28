@@ -1,37 +1,41 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import {
-  ColorType,
-  CrosshairMode,
-  createChart,
-  type AreaData,
-  type IChartApi,
-  type ISeriesApi,
-} from "lightweight-charts";
 import { ChartLineResponse } from "./types";
+import { naira, nairaShort } from "@/data/coreaiData";
 
-const RANGE_LABELS = ["1M", "6M", "YTD", "1YR"];
+/**
+ * Revenue / financial trend card.
+ *
+ * Hand-built SVG area chart (no charting library) so it matches the PDF
+ * reference exactly and plots the REAL series the engine computed:
+ *  - thin 2px line, soft blue area fill, light horizontal grid
+ *  - working range tabs that reslice the real data
+ *  - hover tooltip with the exact ₦ value + month
+ */
 
-const monthStarts = [
-  "2024-01-01",
-  "2024-02-01",
-  "2024-03-01",
-  "2024-04-01",
-  "2024-05-01",
-  "2024-06-01",
-  "2024-07-01",
-  "2024-08-01",
-];
+const RANGE_TABS = ["1M", "6M", "YTD", "1YR"] as const;
+type Range = (typeof RANGE_TABS)[number];
 
 export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
-  const [activeTab, setActiveTab] = useState("YTD");
-  const [year, setYear] = useState("2024");
-  const data = useMemo(() => buildTrendData(activeTab), [activeTab]);
+  // The engine's series IS the source of truth. Tabs reslice it.
+  const fullSeries = chart.series;
+  const fullLabels = chart.xLabels;
+
+  const initial: Range = (RANGE_TABS as readonly string[]).includes(chart.activeTab)
+    ? (chart.activeTab as Range)
+    : "YTD";
+  const [range, setRange] = useState<Range>(initial);
+
+  const { series, labels } = useMemo(
+    () => sliceByRange(fullSeries, fullLabels, range),
+    [fullSeries, fullLabels, range]
+  );
 
   return (
     <div className="mt-4 rounded-[20px] border border-[#ECEFF3] bg-[#F7F8FA] p-4 coreai-fade-up">
+      {/* Header: real title + period */}
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-[13px] font-medium tracking-[-0.02em] text-[#15181E]">
           {chart.title || "Revenue"}
@@ -40,19 +44,21 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
           type="button"
           className="focus-ring flex h-8 items-center gap-1 rounded-lg border border-[#E3E7EC] bg-white px-2.5 text-[11px] font-medium text-[#15181E] shadow-[0_1px_2px_rgba(16,24,40,0.03)]"
         >
-          {year}
+          {chart.period || "This year"}
           <ChevronDown size={13} className="text-[#8A93A3]" aria-hidden />
         </button>
       </div>
 
+      {/* Range tabs — actually reslice the real data */}
       <div className="mb-3 inline-flex rounded-lg border border-[#E6EAF0] bg-white p-1 shadow-[0_1px_2px_rgba(16,24,40,0.02)]">
-        {RANGE_LABELS.map((range) => {
-          const active = activeTab === range;
+        {RANGE_TABS.map((r) => {
+          const active = range === r;
           return (
             <button
-              key={range}
+              key={r}
               type="button"
-              onClick={() => setActiveTab(range)}
+              onClick={() => setRange(r)}
+              aria-pressed={active}
               className={[
                 "focus-ring h-7 rounded-md px-3 text-[11px] font-medium tracking-[-0.02em] transition-colors",
                 active
@@ -60,130 +66,233 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
                   : "text-[#8A93A3] hover:bg-[#F7F8FA] hover:text-[#4B5563]",
               ].join(" ")}
             >
-              {range}
+              {r}
             </button>
           );
         })}
       </div>
 
-      <div className="rounded-[16px] border border-[#EEF1F4] bg-white px-2 pb-2 pt-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
-        <TradingViewAreaChart data={data} />
+      <div className="rounded-[16px] border border-[#EEF1F4] bg-white px-2 pb-1 pt-3">
+        <AreaChart series={series} labels={labels} />
       </div>
     </div>
   );
 }
 
-function TradingViewAreaChart({ data }: { data: AreaData[] }) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const chartRef = useRef<IChartApi | null>(null);
-  const seriesRef = useRef<ISeriesApi<"Area"> | null>(null);
+/* --------------------------------------------------------------- the chart */
 
-  useEffect(() => {
-    if (!containerRef.current) return;
+function AreaChart({ series, labels }: { series: number[]; labels: string[] }) {
+  const W = 560;
+  const H = 200;
+  const padX = 10;
+  const padTop = 16;
+  const padBottom = 26;
 
-    const chart = createChart(containerRef.current, {
-      width: containerRef.current.clientWidth,
-      height: 190,
-      layout: {
-        background: { type: ColorType.Solid, color: "#FFFFFF" },
-        textColor: "#98A2B3",
-        fontFamily: "Geist, Inter, system-ui, sans-serif",
-        fontSize: 11,
-      },
-      grid: {
-        vertLines: { visible: false },
-        horzLines: { color: "#F0F3F6", style: 0, visible: true },
-      },
-      rightPriceScale: { visible: false, borderVisible: false },
-      leftPriceScale: { visible: false, borderVisible: false },
-      timeScale: {
-        borderVisible: false,
-        fixLeftEdge: true,
-        fixRightEdge: true,
-        timeVisible: false,
-        secondsVisible: false,
-      },
-      crosshair: {
-        mode: CrosshairMode.Magnet,
-        vertLine: { color: "rgba(49,87,246,0.16)", width: 1, style: 3, labelVisible: false },
-        horzLine: { visible: false, labelVisible: false },
-      },
-      handleScroll: false,
-      handleScale: false,
-      kineticScroll: { touch: false, mouse: false },
-    });
+  const [hover, setHover] = useState<number | null>(null);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
 
-    const areaSeries = chart.addAreaSeries({
-      lineColor: "#3157F6",
-      topColor: "rgba(49, 87, 246, 0.18)",
-      bottomColor: "rgba(49, 87, 246, 0.01)",
-      lineWidth: 2,
-      priceLineVisible: false,
-      lastValueVisible: false,
-      crosshairMarkerVisible: true,
-      crosshairMarkerRadius: 4,
-      crosshairMarkerBackgroundColor: "#3157F6",
-      crosshairMarkerBorderColor: "#FFFFFF",
-      crosshairMarkerBorderWidth: 2,
-    });
+  const n = series.length;
+  const max = Math.max(...series);
+  const min = Math.min(...series);
+  // Pad the range a little so the line never kisses the top/bottom edge.
+  const lo = min - (max - min) * 0.25 || min * 0.95;
+  const hi = max + (max - min) * 0.15 || max * 1.05;
+  const range = hi - lo || 1;
 
-    areaSeries.setData(data);
-    chart.timeScale().fitContent();
+  const plotW = W - padX * 2;
+  const plotH = H - padTop - padBottom;
 
-    chartRef.current = chart;
-    seriesRef.current = areaSeries;
+  const xAt = (i: number) =>
+    n <= 1 ? padX + plotW / 2 : padX + (i / (n - 1)) * plotW;
+  const yAt = (v: number) => padTop + ((hi - v) / range) * plotH;
 
-    const ro = new ResizeObserver(([entry]) => {
-      const width = entry.contentRect.width;
-      chart.applyOptions({ width });
-      chart.timeScale().fitContent();
-    });
-    ro.observe(containerRef.current);
+  const points = series.map((v, i) => [xAt(i), yAt(v)] as const);
+  const linePath = smoothPath(points);
+  const areaPath =
+    points.length > 0
+      ? `${linePath} L ${points[n - 1][0]} ${H - padBottom} L ${points[0][0]} ${
+          H - padBottom
+        } Z`
+      : "";
 
-    return () => {
-      ro.disconnect();
-      chart.remove();
-      chartRef.current = null;
-      seriesRef.current = null;
-    };
-  }, []);
+  // 3 soft horizontal grid lines.
+  const gridYs = [0, 0.5, 1].map((t) => padTop + t * plotH);
 
-  useEffect(() => {
-    seriesRef.current?.setData(data);
-    chartRef.current?.timeScale().fitContent();
-  }, [data]);
+  // Pointer → nearest data index.
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const relX = ((e.clientX - rect.left) / rect.width) * W;
+    let nearest = 0;
+    let best = Infinity;
+    for (let i = 0; i < n; i++) {
+      const d = Math.abs(xAt(i) - relX);
+      if (d < best) {
+        best = d;
+        nearest = i;
+      }
+    }
+    setHover(nearest);
+  };
+
+  const hoverX = hover != null ? xAt(hover) : 0;
+  const hoverY = hover != null ? yAt(series[hover]) : 0;
+  // Tooltip box placement (flip side near the right edge).
+  const tipW = 116;
+  const tipLeftPct =
+    hover != null
+      ? Math.min(Math.max((hoverX / W) * 100, 9), 91)
+      : 0;
 
   return (
-    <div>
-      <div ref={containerRef} className="h-[190px] w-full" />
-      <div className="-mt-1 grid grid-cols-8 px-1 text-center text-[10px] font-medium text-[#9AA3B2]">
-        {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"].map((m) => (
-          <span key={m}>{m}</span>
+    <div
+      ref={wrapRef}
+      className="relative"
+      onMouseMove={onMove}
+      onMouseLeave={() => setHover(null)}
+    >
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="block h-auto w-full"
+        role="img"
+        aria-label={`Trend chart with ${n} points`}
+      >
+        <defs>
+          <linearGradient id="coreai_area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#3157F6" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#3157F6" stopOpacity="0.01" />
+          </linearGradient>
+        </defs>
+
+        {/* grid */}
+        {gridYs.map((y, i) => (
+          <line
+            key={i}
+            x1={padX}
+            x2={W - padX}
+            y1={y}
+            y2={y}
+            stroke="#F0F3F6"
+            strokeWidth="1"
+          />
         ))}
-      </div>
+
+        {/* area + line */}
+        {areaPath && <path d={areaPath} fill="url(#coreai_area)" />}
+        {linePath && (
+          <path
+            d={linePath}
+            fill="none"
+            stroke="#3157F6"
+            strokeWidth="2"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            className="coreai-line-draw"
+          />
+        )}
+
+        {/* hover crosshair + marker */}
+        {hover != null && (
+          <>
+            <line
+              x1={hoverX}
+              x2={hoverX}
+              y1={padTop}
+              y2={H - padBottom}
+              stroke="#3157F6"
+              strokeOpacity="0.18"
+              strokeWidth="1"
+              strokeDasharray="3 3"
+            />
+            <circle cx={hoverX} cy={hoverY} r="4.5" fill="#3157F6" stroke="#fff" strokeWidth="2" />
+          </>
+        )}
+
+        {/* x labels */}
+        {labels.map((lbl, i) => (
+          <text
+            key={`${lbl}-${i}`}
+            x={xAt(i)}
+            y={H - 8}
+            textAnchor="middle"
+            className="fill-[#9AA3B2]"
+            style={{ fontSize: 10, fontWeight: 500 }}
+          >
+            {lbl}
+          </text>
+        ))}
+      </svg>
+
+      {/* tooltip */}
+      {hover != null && (
+        <div
+          className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-lg border border-[#E6EAF0] bg-white px-2.5 py-1.5 shadow-[0_4px_14px_rgba(16,24,40,0.10)]"
+          style={{
+            left: `${tipLeftPct}%`,
+            top: `${(hoverY / H) * 100}%`,
+            transform: "translate(-50%, calc(-100% - 10px))",
+            width: tipW,
+          }}
+        >
+          <div className="text-[10px] font-medium uppercase tracking-wide text-[#9AA3B2]">
+            {labels[hover]}
+          </div>
+          <div className="mt-0.5 text-[12px] font-semibold tracking-[-0.02em] text-[#15181E]">
+            {naira(series[hover])}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function buildTrendData(range: string): AreaData[] {
-  const base = [42, 45, 43, 47, 49, 52, 50, 54];
-  const multiplier = range === "1M" ? 0.88 : range === "6M" ? 0.96 : range === "1YR" ? 1.08 : 1;
-  const points: AreaData[] = [];
+/* ----------------------------------------------------------------- helpers */
 
-  monthStarts.forEach((start, monthIndex) => {
-    const anchor = base[monthIndex] * multiplier;
-    const [year, month] = start.split("-").map(Number);
-    for (let j = 0; j < 5; j++) {
-      const day = 1 + j * 6;
-      const wave = Math.sin((monthIndex * 5 + j) * 0.85) * 1.5;
-      const micro = Math.cos((monthIndex + j) * 1.6) * 0.65;
-      const value = Math.max(32, anchor + wave + micro + j * 0.45);
-      points.push({
-        time: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-        value: Number(value.toFixed(2)),
-      });
-    }
-  });
+// Reslice the real series to the chosen range. The full series is up to 12
+// monthly points; tabs pick a tail window. (No fabricated data.)
+function sliceByRange(
+  series: number[],
+  labels: string[],
+  range: Range
+): { series: number[]; labels: string[] } {
+  const n = series.length;
+  let count: number;
+  switch (range) {
+    case "1M":
+      count = Math.min(2, n); // last month vs prior (need 2 pts to draw a line)
+      break;
+    case "6M":
+      count = Math.min(6, n);
+      break;
+    case "1YR":
+      count = n; // everything available
+      break;
+    case "YTD":
+    default:
+      count = n;
+  }
+  const start = Math.max(0, n - count);
+  return { series: series.slice(start), labels: labels.slice(start) };
+}
 
-  return points;
+// Catmull-Rom → cubic Bézier for a soft, PDF-like curve.
+function smoothPath(pts: ReadonlyArray<readonly [number, number]>): string {
+  if (pts.length < 2) {
+    return pts.length === 1 ? `M ${pts[0][0]} ${pts[0][1]}` : "";
+  }
+  const t = 0.18;
+  let d = `M ${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] ?? p2;
+    const c1x = p1[0] + (p2[0] - p0[0]) * t;
+    const c1y = p1[1] + (p2[1] - p0[1]) * t;
+    const c2x = p2[0] - (p3[0] - p1[0]) * t;
+    const c2y = p2[1] - (p3[1] - p1[1]) * t;
+    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
+  }
+  return d;
 }
