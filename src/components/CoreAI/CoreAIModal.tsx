@@ -134,7 +134,7 @@ export default function CoreAIPanel() {
                 m.role === "user" ? (
                   <UserBubble key={m.id} message={m} />
                 ) : (
-                  <AssistantBlock key={m.id} message={m} />
+                  <AssistantBlock key={m.id} message={m} onFollowUp={send} />
                 )
               )}
               <div className="h-6" />

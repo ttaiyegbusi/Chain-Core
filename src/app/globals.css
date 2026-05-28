@@ -217,3 +217,125 @@ body {
     -webkit-text-fill-color: #111827;
   }
 }
+
+/* Core AI v2: message, chart and panel polish */
+@keyframes coreai-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.coreai-message-in {
+  animation: coreai-message-in 360ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes coreai-chart-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+.coreai-chart-reveal {
+  animation: coreai-chart-reveal 520ms cubic-bezier(0.32, 0.72, 0, 1) 120ms both;
+}
+
+@keyframes coreai-line-draw {
+  from {
+    stroke-dashoffset: 900;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.coreai-line-draw {
+  stroke-dasharray: 900;
+  stroke-dashoffset: 900;
+  animation: coreai-line-draw 900ms cubic-bezier(0.32, 0.72, 0, 1) 180ms both;
+}
+
+@keyframes coreai-area-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.coreai-area-reveal {
+  transform-origin: bottom center;
+  animation: coreai-area-reveal 700ms cubic-bezier(0.32, 0.72, 0, 1) 420ms both;
+}
+
+@keyframes coreai-point-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.coreai-point-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: coreai-point-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1) 900ms both;
+}
+
+@keyframes coreai-donut-in {
+  from {
+    opacity: 0;
+    transform: rotate(-10deg) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+.coreai-donut-spin-in {
+  animation: coreai-donut-in 560ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  transform-origin: center;
+}
+
+@keyframes coreai-donut-slice {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.coreai-donut-slice {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: coreai-donut-slice 420ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coreai-message-in,
+  .coreai-chart-reveal,
+  .coreai-line-draw,
+  .coreai-area-reveal,
+  .coreai-point-pop,
+  .coreai-donut-spin-in,
+  .coreai-donut-slice {
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+}
