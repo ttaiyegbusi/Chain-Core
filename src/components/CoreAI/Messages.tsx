@@ -51,7 +51,8 @@ export function AssistantBlock({ message }: { message: AssistantMessage }) {
 
   const showAnswer =
     message.phase === "answering" || message.phase === "done";
-  const showChart = message.phase === "done" && !!message.chart;
+  const showChart = message.showChart && !!message.chart;
+  const showFollowUps = message.showFollowUps && !!message.followUps?.length;
   const showFeedback = message.phase === "done";
 
   return (
@@ -87,12 +88,27 @@ export function AssistantBlock({ message }: { message: AssistantMessage }) {
       {showAnswer && (
         <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-text-primary">
           {shownAnswer}
-          {message.phase === "answering" && (
+          {false && message.phase === "answering" && (
             <span className="coreai-caret" aria-hidden>
               ▍
             </span>
           )}
         </p>
+      )}
+
+      {/* ---- Follow-up suggestions ---- */}
+      {showFollowUps && (
+        <div className="mt-4 flex flex-wrap gap-2 coreai-fade-up">
+          {message.followUps?.map((followUp) => (
+            <button
+              key={followUp}
+              type="button"
+              className="focus-ring rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium text-text-secondary shadow-[0_1px_2px_rgba(17,24,39,0.04)] hover:bg-surface-muted hover:text-text-primary"
+            >
+              {followUp}
+            </button>
+          ))}
+        </div>
       )}
 
       {/* ---- Feedback actions ---- */}

@@ -40,6 +40,7 @@ export interface ChartLineResponse {
   activeTab: string;
   xLabels: string[];
   series: number[];
+  datasets?: Record<string, { xLabels: string[]; series: number[] }>;
 }
 
 export interface PieSlice {
@@ -114,12 +115,15 @@ export interface AssistantMessage {
   answer: string;
   chart?: ChartResponse;
   attachments?: Attachments;
+  followUps?: string[];
   // streaming state — driven by the provider as the response "plays"
   phase: AssistantPhase;
   // index of thinking lines revealed so far (for the live animation)
   revealedThinking: number;
   // characters of `answer` revealed so far (for the typing effect)
   revealedChars: number;
+  showChart: boolean;
+  showFollowUps: boolean;
 }
 
 export interface UserMessage {
@@ -186,7 +190,7 @@ export function buildUserMessage(text: string): UserMessage {
 function assistant(
   partial: Omit<
     AssistantMessage,
-    "id" | "role" | "phase" | "revealedThinking" | "revealedChars"
+    "id" | "role" | "phase" | "revealedThinking" | "revealedChars" | "showChart" | "showFollowUps"
   >
 ): AssistantMessage {
   return {
@@ -195,6 +199,8 @@ function assistant(
     phase: "thinking",
     revealedThinking: 0,
     revealedChars: 0,
+    showChart: false,
+    showFollowUps: false,
     ...partial,
   };
 }
@@ -234,6 +240,42 @@ function pctSlices(items: { label: string; amount: number; color: string }[]): P
     detail: naira(x.amount),
     color: x.color,
   }));
+}
+
+function revenueChart(title: string, period: string, defaultTab: string = "YTD"): ChartLineResponse {
+  return {
+    kind: "line",
+    title,
+    period,
+    tabs: ["1M", "6M", "YTD", "1YR"],
+    activeTab: defaultTab,
+    xLabels: MONTHS.slice(0, 8) as unknown as string[],
+    series: MONTHLY_INCOME.slice(0, 8),
+    datasets: {
+      "1M": { xLabels: [MONTHS[MONTHS_POSTED - 1]] as unknown as string[], series: [MONTHLY_INCOME[MONTHS_POSTED - 1]] },
+      "6M": { xLabels: MONTHS.slice(0, 6) as unknown as string[], series: MONTHLY_INCOME.slice(0, 6) },
+      "YTD": { xLabels: MONTHS.slice(0, 8) as unknown as string[], series: MONTHLY_INCOME.slice(0, 8) },
+      "1YR": { xLabels: MONTHS as unknown as string[], series: MONTHLY_INCOME },
+    },
+  };
+}
+
+function expenseTrendChart(title: string, period: string, defaultTab: string = "YTD"): ChartLineResponse {
+  return {
+    kind: "line",
+    title,
+    period,
+    tabs: ["1M", "6M", "YTD", "1YR"],
+    activeTab: defaultTab,
+    xLabels: MONTHS.slice(0, 8) as unknown as string[],
+    series: MONTHLY_EXPENSE.slice(0, 8),
+    datasets: {
+      "1M": { xLabels: [MONTHS[MONTHS_POSTED - 1]] as unknown as string[], series: [MONTHLY_EXPENSE[MONTHS_POSTED - 1]] },
+      "6M": { xLabels: MONTHS.slice(0, 6) as unknown as string[], series: MONTHLY_EXPENSE.slice(0, 6) },
+      "YTD": { xLabels: MONTHS.slice(0, 8) as unknown as string[], series: MONTHLY_EXPENSE.slice(0, 8) },
+      "1YR": { xLabels: MONTHS as unknown as string[], series: MONTHLY_EXPENSE },
+    },
+  };
 }
 
 // ----------------------------------------------------------- the engine
@@ -280,6 +322,7 @@ export function buildAssistantResponse(
         researching: "Reading cash & balances GL as of close of business yesterday.",
         answer: `Your total group cash position is ${naira(GROUP_CASH)} across ${BRANCH_POSITIONS.length} branches. Lagos (HQ) holds the largest share at ${naira(BRANCH_POSITIONS[0].cash)} (${Math.round((BRANCH_POSITIONS[0].cash / GROUP_CASH) * 100)}% of the total). Here's the breakdown by branch:`,
         chart: { kind: "bar", title: "Cash by Branch", period: "As of yesterday", bars },
+        followUps: ["Show liquidity trend", "Compare branches", "Open cash GL accounts", "Export this report"],
         attachments: SAMPLE_ATTACHMENTS,
       }),
     };
@@ -305,15 +348,8 @@ export function buildAssistantResponse(
           thinkingSeconds: 4,
           researching: "Aggregating expense GL postings by month.",
           answer: `Here's your operating-expense trend for ${period.label}. Spend has grown steadily, ending at ${naira(series[series.length - 1])} in the latest posted month.`,
-          chart: {
-            kind: "line",
-            title: "Operating Expenses",
-            period: period.label,
-            tabs: ["3M", "6M", "YTD", "1YR"],
-            activeTab: "YTD",
-            xLabels: MONTHS.slice(0, period.count) as unknown as string[],
-            series,
-          },
+          chart: expenseTrendChart("Operating Expenses", period.label),
+          followUps: ["Show by category", "Compare with revenue", "Open related journal entries", "Export this report"],
         }),
       };
     }
@@ -336,6 +372,7 @@ export function buildAssistantResponse(
         researching: "Grouping posted expenses by category.",
         answer: `Total operating expenses for ${period.label} are ${naira(total)}. Staff Costs are the largest line at ${naira(EXPENSE_BY_CATEGORY[0].amount)} (${Math.round((EXPENSE_BY_CATEGORY[0].amount / total) * 100)}%). Here's the breakdown by category:`,
         chart: { kind: "bar", title: "Expenses by Category", period: period.label, bars },
+        followUps: ["Show expense trend", "Compare with revenue", "Open expense GL accounts", "Export this report"],
         attachments: SAMPLE_ATTACHMENTS,
       }),
     };
@@ -366,6 +403,7 @@ export function buildAssistantResponse(
         researching: "Reconciling income vs expense postings.",
         answer: `For ${period.label}, income is ${naira(inc)} against expenses of ${naira(exp)}, giving a net income of ${naira(net)} — a margin of ${Math.round((net / inc) * 100)}%.`,
         chart: { kind: "bar", title: "Income vs Expenses", period: period.label, bars },
+        followUps: ["Show revenue trend", "Show expense trend", "Open related journal entries", "Export this report"],
       }),
     };
   }
@@ -386,15 +424,8 @@ export function buildAssistantResponse(
         thinkingSeconds: 5,
         researching: "Looking across interest income, fees and FX lines.",
         answer: `Here's your revenue trend for ${period.label}. Total income over the period is ${naira(total)}, driven mainly by interest income on loans, and rising month-on-month.`,
-        chart: {
-          kind: "line",
-          title: "Revenue",
-          period: period.label,
-          tabs: ["3M", "6M", "YTD", "1YR"],
-          activeTab: "YTD",
-          xLabels: MONTHS.slice(0, period.count) as unknown as string[],
-          series,
-        },
+        chart: revenueChart("Revenue", period.label),
+        followUps: ["Show revenue trend", "Compare with expenses", "Open income GL accounts", "Export this report"],
       }),
     };
   }
@@ -417,6 +448,7 @@ export function buildAssistantResponse(
           researching: "Computing share of total assets by class.",
           answer: `Here's the asset allocation across the major balance-sheet classes. Loans & Advances remain the largest exposure at ${naira(ASSET_MIX[0].amount)}.`,
           chart: { kind: "pie", title: "Asset Allocation", period: "This Quarter", slices: pctSlices(ASSET_MIX) },
+          followUps: ["Compare assets and liabilities", "Open balance sheet", "View top asset GLs", "Export this report"],
         }),
       };
     }
@@ -432,6 +464,7 @@ export function buildAssistantResponse(
         researching: "Reading the balance sheet as of close of business yesterday.",
         answer: `Total assets stand at ${naira(BS_HEADLINES.totalAssets)}, against liabilities of ${naira(BS_HEADLINES.totalLiabilities)}, leaving equity of ${naira(BS_HEADLINES.totalEquity)}. Loans & advances are ${naira(BS_HEADLINES.loansAndAdvances)} and customer deposits are ${naira(BS_HEADLINES.customerDeposits)}.`,
         chart: { kind: "pie", title: "Asset Allocation", period: "This Quarter", slices: pctSlices(ASSET_MIX) },
+        followUps: ["Compare assets and liabilities", "Open balance sheet", "View top asset GLs", "Export this report"],
         attachments: SAMPLE_ATTACHMENTS,
       }),
     };
@@ -501,6 +534,7 @@ export function buildAssistantResponse(
         researching: "Sorting the General Ledger by balance.",
         answer: `Your five largest GL accounts by balance are:\n\n${list}`,
         chart: { kind: "bar", title: "Top Accounts by Balance", period: "Current", bars },
+        followUps: ["Open GL report", "Show by account class", "View journal entries", "Export this report"],
       }),
     };
   }

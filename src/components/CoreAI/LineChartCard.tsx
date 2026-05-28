@@ -1,165 +1,118 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { ChartLineResponse } from "./types";
+import { naira, nairaShort } from "@/data/coreaiData";
 
 export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
   const [activeTab, setActiveTab] = useState(chart.activeTab);
+  const activeData = chart.datasets?.[activeTab] ?? {
+    xLabels: chart.xLabels,
+    series: chart.series,
+  };
+
+  const data = useMemo(
+    () =>
+      activeData.xLabels.map((month, index) => ({
+        month,
+        value: activeData.series[index] ?? 0,
+      })),
+    [activeData]
+  );
 
   return (
-    <div className="mt-3 rounded-[24px] bg-[#F7F7F7] p-3 coreai-chart-reveal">
-      {/* Header matches the supplied Revenue reference: quiet title on the left,
-          compact year selector on the right. */}
-      <div className="mb-3 flex items-center justify-between px-1">
-        <h3 className="text-[15px] font-medium leading-5 text-[#9AA1AC]">
-          {chart.title}
-        </h3>
+    <div className="mt-4 rounded-[20px] bg-[#F7F8FA] p-4 coreai-chart-reveal">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-[13px] font-medium text-text-primary">{chart.title}</h3>
         <button
           type="button"
-          className="focus-ring flex h-9 items-center gap-1.5 rounded-lg border border-[#E6E8EC] bg-white px-3 text-xs font-medium text-[#111827] shadow-[0_1px_2px_rgba(17,24,39,0.04)] hover:bg-[#FAFAFA]"
+          className="focus-ring flex h-8 items-center gap-1 rounded-lg bg-white px-3 text-xs font-medium text-text-primary shadow-[0_1px_2px_rgba(17,24,39,0.05)] ring-1 ring-border hover:bg-surface-muted"
         >
-          {chart.period}
-          <ChevronDown size={13} className="text-[#6B7280]" aria-hidden />
+          2024
+          <ChevronDown size={14} className="text-text-muted" aria-hidden />
         </button>
       </div>
 
-      <div className="rounded-[18px] bg-white p-3 shadow-[0_1px_2px_rgba(17,24,39,0.04)] ring-1 ring-[#EEF0F2]">
-        {/* Segmented control: no gaps, soft borders, exact order from the PDF. */}
-        <div
-          role="tablist"
-          aria-label="Revenue time range"
-          className="mb-5 grid h-12 grid-cols-4 overflow-hidden rounded-xl border border-[#E6E8EC] bg-white text-[13px] font-semibold text-[#4B5563] shadow-[0_1px_2px_rgba(17,24,39,0.04)]"
-        >
-          {chart.tabs.map((tab, index) => {
-            const active = tab === activeTab;
-            return (
-              <button
-                key={tab}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setActiveTab(tab)}
-                className={[
-                  "focus-ring transition-colors",
-                  index !== chart.tabs.length - 1 ? "border-r border-[#E6E8EC]" : "",
-                  active
-                    ? "bg-[#F8F8F8] text-[#111827] shadow-[inset_0_0_0_1px_rgba(17,24,39,0.02)]"
-                    : "bg-white text-[#4B5563] hover:bg-[#FAFAFA]",
-                ].join(" ")}
-              >
-                {tab}
-              </button>
-            );
-          })}
-        </div>
+      <div className="mb-3 inline-flex rounded-xl bg-white p-1 shadow-[0_1px_2px_rgba(17,24,39,0.04)] ring-1 ring-border">
+        {chart.tabs.map((tab) => {
+          const active = tab === activeTab;
+          return (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={[
+                "focus-ring h-7 rounded-lg px-3 text-[11px] font-medium transition-colors",
+                active
+                  ? "bg-[#EEF2FF] text-[#3157F6]"
+                  : "text-text-muted hover:bg-surface-muted hover:text-text-primary",
+              ].join(" ")}
+            >
+              {tab}
+            </button>
+          );
+        })}
+      </div>
 
-        <LineSVG xLabels={chart.xLabels} series={chart.series} />
+      <div className="h-[206px] rounded-2xl bg-white px-2 pb-2 pt-3 shadow-[0_1px_2px_rgba(17,24,39,0.03)] ring-1 ring-[#EEF1F4]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 2, left: -16 }}>
+            <defs>
+              <linearGradient id="coreaiRevenueFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#3157F6" stopOpacity={0.22} />
+                <stop offset="85%" stopColor="#3157F6" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} stroke="#EEF1F4" strokeDasharray="0" />
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: "#8A93A3", fontSize: 11 }}
+              interval={0}
+              dy={8}
+            />
+            <YAxis
+              hide
+              domain={["dataMin - 20000000", "dataMax + 30000000"]}
+              tickFormatter={(v) => nairaShort(Number(v))}
+            />
+            <Tooltip content={<RevenueTooltip />} cursor={{ stroke: "#DDE3EA", strokeWidth: 1 }} />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="#3157F6"
+              strokeWidth={2.5}
+              fill="url(#coreaiRevenueFill)"
+              dot={false}
+              activeDot={{ r: 4, stroke: "#FFFFFF", strokeWidth: 2, fill: "#3157F6" }}
+              isAnimationActive
+              animationDuration={520}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
 }
 
-function LineSVG({ xLabels, series }: { xLabels: string[]; series: number[] }) {
-  const W = 430;
-  const H = 270;
-  const padX = 20;
-  const padTop = 14;
-  const padBottom = 54;
-
-  const min = Math.min(...series);
-  const max = Math.max(...series);
-  const range = max - min || 1;
-  const usableH = H - padTop - padBottom;
-
-  const n = series.length;
-  const step = (W - padX * 2) / Math.max(1, n - 1);
-  const points = series.map((value, index) => {
-    const x = padX + index * step;
-    const normalized = (max - value) / range;
-    const y = padTop + normalized * usableH;
-    return [x, y] as const;
-  });
-
-  const linePath = smoothPath(points);
-  const baseline = H - padBottom;
-  const areaPath = `${linePath} L ${points[points.length - 1][0]} ${baseline} L ${points[0][0]} ${baseline} Z`;
-  const gridYs = [0, 0.25, 0.5, 0.75, 1].map((t) => padTop + t * usableH);
-
+function RevenueTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  const value = payload[0]?.value ?? 0;
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className="block h-auto w-full"
-      role="img"
-      aria-label="Revenue trend line chart"
-    >
-      <defs>
-        <linearGradient id="coreai_revenue_area" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0097FF" stopOpacity="0.16" />
-          <stop offset="55%" stopColor="#0097FF" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#0097FF" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-
-      {gridYs.map((y, index) => (
-        <line
-          key={index}
-          x1={padX}
-          x2={W - padX}
-          y1={y}
-          y2={y}
-          stroke="#EEF1F4"
-          strokeWidth="1"
-        />
-      ))}
-
-      <path d={areaPath} fill="url(#coreai_revenue_area)" />
-      <path
-        d={linePath}
-        fill="none"
-        stroke="#0097FF"
-        strokeWidth="3"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-
-      {xLabels.map((label, index) => {
-        const x = padX + index * ((W - padX * 2) / Math.max(1, xLabels.length - 1));
-        return (
-          <text
-            key={label}
-            x={x}
-            y={H - 10}
-            textAnchor="middle"
-            className="fill-[#5F6877]"
-            style={{ fontSize: 13, fontWeight: 500 }}
-          >
-            {label}
-          </text>
-        );
-      })}
-    </svg>
+    <div className="rounded-xl border border-border bg-white px-3 py-2 shadow-[0_8px_24px_rgba(17,24,39,0.12)]">
+      <div className="text-[11px] font-medium text-text-muted">{label}</div>
+      <div className="mt-0.5 text-xs font-semibold text-text-primary">{naira(Number(value))}</div>
+    </div>
   );
-}
-
-// Catmull-Rom to cubic Bezier path with a slightly loose tension to mimic the
-// hand-smoothed curve in the reference PDF.
-function smoothPath(points: ReadonlyArray<readonly [number, number]>): string {
-  if (points.length < 2) return "";
-  const tension = 0.18;
-  let d = `M ${points[0][0]} ${points[0][1]}`;
-
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i - 1] ?? points[i];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[i + 2] ?? p2;
-    const c1x = p1[0] + (p2[0] - p0[0]) * tension;
-    const c1y = p1[1] + (p2[1] - p0[1]) * tension;
-    const c2x = p2[0] - (p3[0] - p1[0]) * tension;
-    const c2y = p2[1] - (p3[1] - p1[1]) * tension;
-    d += ` C ${c1x} ${c1y}, ${c2x} ${c2y}, ${p2[0]} ${p2[1]}`;
-  }
-
-  return d;
 }

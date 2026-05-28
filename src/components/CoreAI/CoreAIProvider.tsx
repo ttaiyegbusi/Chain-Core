@@ -36,12 +36,13 @@ interface CoreAIContextValue {
 
 const CoreAIContext = createContext<CoreAIContextValue | null>(null);
 
-// ----- response timing knobs (ms) -----
-// Core banking users need quick answers. Keep the assistant feeling alive,
-// but avoid theatrical delays that make reports and charts feel slow.
-const THINKING_PREVIEW = 220; // first visible status beat
-const RESEARCHING_PREVIEW = 260; // short data lookup beat
-const ANSWER_REVEAL = 90; // answer + chart reveal after research beat
+// ----- response pacing knobs (ms) -----
+// Balanced for banking: enough status feedback to feel intelligent, but no long theatrical waits.
+const THINKING_LINE_INTERVAL = 260;
+const THINKING_HOLD = 180;
+const RESEARCHING_HOLD = 420;
+const CHART_REVEAL_DELAY = 260;
+const FOLLOW_UP_REVEAL_DELAY = 220;
 
 export function CoreAIProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,38 +99,51 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
       setIsStreaming(true);
 
       const id = assistantMsg.id;
-      const full = assistantMsg.answer.length;
+      const thinkingCount = assistantMsg.thinking.length;
 
-      // 1) Show a short thinking preview, but reveal all curated status lines
-      // quickly. This keeps the experience responsive while still explaining
-      // what the assistant is doing.
-      const tThinking = setTimeout(() => {
-        patch(id, (m) => ({ ...m, revealedThinking: m.thinking.length }));
-      }, THINKING_PREVIEW);
-      timers.current.push(tThinking);
-
-      // 2) Briefly switch to researching when a lookup/status line exists.
-      const hasResearch = !!assistantMsg.researching;
-      if (hasResearch) {
-        const tResearch = setTimeout(() => {
-          setPhase(id, "researching");
-        }, THINKING_PREVIEW + RESEARCHING_PREVIEW);
-        timers.current.push(tResearch);
+      // 1) Reveal thinking lines quickly, one at a time.
+      for (let i = 1; i <= thinkingCount; i++) {
+        const t = setTimeout(() => {
+          patch(id, (m) => ({ ...m, revealedThinking: i }));
+        }, THINKING_LINE_INTERVAL * i);
+        timers.current.push(t);
       }
 
-      // 3) Reveal the full answer and chart almost immediately. Avoid slow
-      // typewriter effects for banking/reporting workflows.
-      const tDone = setTimeout(() => {
+      const afterThinking = THINKING_LINE_INTERVAL * thinkingCount + THINKING_HOLD;
+      const hasResearch = !!assistantMsg.researching;
+      const startAnswerAt = hasResearch
+        ? afterThinking + RESEARCHING_HOLD
+        : afterThinking;
+
+      if (hasResearch) {
+        const t = setTimeout(() => setPhase(id, "researching"), afterThinking);
+        timers.current.push(t);
+      }
+
+      // 2) Reveal the answer in one clean fade, not character-by-character.
+      // This keeps the flow natural without making reports/charts feel slow.
+      const tAnswer = setTimeout(() => {
         patch(id, (m) => ({
           ...m,
-          phase: "done",
-          revealedThinking: m.thinking.length,
-          revealedChars: full,
+          phase: "answering",
+          revealedChars: assistantMsg.answer.length,
         }));
-        setIsStreaming(false);
+      }, startAnswerAt);
+      timers.current.push(tAnswer);
+
+      // 3) Mark done and reveal the chart shortly after the answer.
+      const tChart = setTimeout(() => {
+        patch(id, (m) => ({ ...m, phase: "done", showChart: !!assistantMsg.chart }));
         if (assistantMsg.attachments) setMode("modal-attachments");
-      }, THINKING_PREVIEW + (hasResearch ? RESEARCHING_PREVIEW : 0) + ANSWER_REVEAL);
-      timers.current.push(tDone);
+      }, startAnswerAt + CHART_REVEAL_DELAY);
+      timers.current.push(tChart);
+
+      // 4) Reveal contextual follow-ups last, but still quickly.
+      const tFollowUps = setTimeout(() => {
+        patch(id, (m) => ({ ...m, showFollowUps: !!assistantMsg.followUps?.length }));
+        setIsStreaming(false);
+      }, startAnswerAt + CHART_REVEAL_DELAY + FOLLOW_UP_REVEAL_DELAY);
+      timers.current.push(tFollowUps);
     },
     [patch, setPhase]
   );
