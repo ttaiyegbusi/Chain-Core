@@ -36,12 +36,12 @@ interface CoreAIContextValue {
 
 const CoreAIContext = createContext<CoreAIContextValue | null>(null);
 
-// ----- streaming timing knobs (ms) -----
-const THINKING_LINE_INTERVAL = 700; // gap between each thinking line appearing
-const THINKING_HOLD = 500; // pause after last line before researching
-const RESEARCHING_HOLD = 900; // time spent in "researching" before answering
-const TYPE_TICK = 14; // ms per character reveal
-const TYPE_CHARS_PER_TICK = 3; // characters revealed per tick
+// ----- response timing knobs (ms) -----
+// Core banking users need quick answers. Keep the assistant feeling alive,
+// but avoid theatrical delays that make reports and charts feel slow.
+const THINKING_PREVIEW = 220; // first visible status beat
+const RESEARCHING_PREVIEW = 260; // short data lookup beat
+const ANSWER_REVEAL = 90; // answer + chart reveal after research beat
 
 export function CoreAIProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,54 +98,38 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
       setIsStreaming(true);
 
       const id = assistantMsg.id;
-      const thinkingCount = assistantMsg.thinking.length;
+      const full = assistantMsg.answer.length;
 
-      // 1) Reveal thinking lines one at a time.
-      for (let i = 1; i <= thinkingCount; i++) {
-        const t = setTimeout(() => {
-          patch(id, (m) => ({ ...m, revealedThinking: i }));
-        }, THINKING_LINE_INTERVAL * i);
-        timers.current.push(t);
-      }
+      // 1) Show a short thinking preview, but reveal all curated status lines
+      // quickly. This keeps the experience responsive while still explaining
+      // what the assistant is doing.
+      const tThinking = setTimeout(() => {
+        patch(id, (m) => ({ ...m, revealedThinking: m.thinking.length }));
+      }, THINKING_PREVIEW);
+      timers.current.push(tThinking);
 
-      const afterThinking = THINKING_LINE_INTERVAL * thinkingCount + THINKING_HOLD;
-
-      // 2) Move to researching (or straight to answering if no research line).
+      // 2) Briefly switch to researching when a lookup/status line exists.
       const hasResearch = !!assistantMsg.researching;
-      const startAnswerAt = hasResearch
-        ? afterThinking + RESEARCHING_HOLD
-        : afterThinking;
-
       if (hasResearch) {
-        const t = setTimeout(() => setPhase(id, "researching"), afterThinking);
-        timers.current.push(t);
+        const tResearch = setTimeout(() => {
+          setPhase(id, "researching");
+        }, THINKING_PREVIEW + RESEARCHING_PREVIEW);
+        timers.current.push(tResearch);
       }
 
-      // 3) Begin answering — type the answer out.
-      const tStart = setTimeout(() => {
-        setPhase(id, "answering");
-        const full = assistantMsg.answer.length;
-        const iv = setInterval(() => {
-          let finished = false;
-          patch(id, (m) => {
-            const next = Math.min(m.revealedChars + TYPE_CHARS_PER_TICK, full);
-            if (next >= full) finished = true;
-            return { ...m, revealedChars: next };
-          });
-          if (finished) {
-            clearInterval(iv);
-            // 4) Done — reveal chart/attachments, stop streaming.
-            const tDone = setTimeout(() => {
-              patch(id, (m) => ({ ...m, phase: "done", revealedChars: full }));
-              setIsStreaming(false);
-              if (assistantMsg.attachments) setMode("modal-attachments");
-            }, 120);
-            timers.current.push(tDone);
-          }
-        }, TYPE_TICK);
-        intervals.current.push(iv);
-      }, startAnswerAt);
-      timers.current.push(tStart);
+      // 3) Reveal the full answer and chart almost immediately. Avoid slow
+      // typewriter effects for banking/reporting workflows.
+      const tDone = setTimeout(() => {
+        patch(id, (m) => ({
+          ...m,
+          phase: "done",
+          revealedThinking: m.thinking.length,
+          revealedChars: full,
+        }));
+        setIsStreaming(false);
+        if (assistantMsg.attachments) setMode("modal-attachments");
+      }, THINKING_PREVIEW + (hasResearch ? RESEARCHING_PREVIEW : 0) + ANSWER_REVEAL);
+      timers.current.push(tDone);
     },
     [patch, setPhase]
   );
