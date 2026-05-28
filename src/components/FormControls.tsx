@@ -13,7 +13,7 @@ export function FieldLabel({
   return (
     <label
       htmlFor={htmlFor}
-      className="mb-2 block text-sm text-text-secondary"
+      className="mb-2 block text-sm font-medium text-text-secondary"
     >
       {children}
     </label>
@@ -50,15 +50,15 @@ export function TextInput({
         aria-invalid={!!error}
         aria-describedby={error ? `${id}-error` : undefined}
         className={[
-          "focus-ring h-[46px] w-full rounded-md border px-3.5 text-sm text-text-primary placeholder:text-text-muted",
+          "cc-control-lg w-full",
           readOnly
-            ? "border-border-strong bg-surface-muted2 text-text-secondary"
-            : "border-border-strong bg-white",
-          error ? "border-red-400" : "",
+            ? "border-border bg-bg-sub text-text-secondary"
+            : "border-border bg-surface",
+          error ? "border-danger" : "",
         ].join(" ")}
       />
       {error && (
-        <p id={`${id}-error`} className="mt-1.5 text-xs text-red-500">
+        <p id={`${id}-error`} className="mt-1.5 text-xs text-danger">
           {error}
         </p>
       )}
@@ -97,12 +97,12 @@ export function SelectInput({
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
           className={[
-            "focus-ring h-[46px] w-full appearance-none rounded-md border px-3.5 pr-10 text-sm",
+            "cc-control-lg w-full appearance-none pr-10",
             value ? "text-text-primary" : "text-text-muted",
             readOnly
-              ? "border-border-strong bg-surface-muted2 text-text-secondary"
-              : "border-border-strong bg-white",
-            error ? "border-red-400" : "",
+              ? "border-border bg-bg-sub text-text-secondary"
+              : "border-border bg-surface",
+            error ? "border-danger" : "",
           ].join(" ")}
         >
           <option value="" disabled>
@@ -121,7 +121,7 @@ export function SelectInput({
         />
       </div>
       {error && (
-        <p id={`${id}-error`} className="mt-1.5 text-xs text-red-500">
+        <p id={`${id}-error`} className="mt-1.5 text-xs text-danger">
           {error}
         </p>
       )}
@@ -157,8 +157,8 @@ export function Checkbox({
       />
       <span
         className={[
-          "flex h-[18px] w-[18px] items-center justify-center rounded-[5px] border transition-colors",
-          checked ? "border-primary bg-primary" : "border-border-strong bg-white",
+          "flex h-[18px] w-[18px] items-center justify-center rounded-md border shadow-xs transition-colors",
+          checked ? "border-primary bg-primary" : "border-border bg-surface",
           "peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary",
         ].join(" ")}
       >
@@ -208,10 +208,10 @@ export function Textarea({
         onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder}
         className={[
-          "focus-ring w-full max-w-[650px] rounded-md border px-3.5 pt-4 text-sm text-text-primary placeholder:text-text-muted",
+          "focus-ring w-full max-w-[650px] rounded-xl border px-3.5 pt-4 text-sm leading-5 text-text-primary shadow-xs placeholder:text-text-muted",
           readOnly
-            ? "border-border-strong bg-surface-muted2 text-text-secondary"
-            : "border-border-strong bg-white",
+            ? "border-border bg-bg-sub text-text-secondary"
+            : "border-border bg-surface",
         ].join(" ")}
         rows={6}
         style={{ minHeight: 160 }}
@@ -236,7 +236,7 @@ export function SectionAccordion({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="focus-ring flex h-9 w-full items-center justify-between rounded-md bg-surface-muted px-4 text-sm font-medium text-text-primary"
+        className="focus-ring flex h-10 w-full items-center justify-between rounded-xl border border-border bg-bg-sub px-4 text-sm font-semibold text-text-primary"
       >
         {title}
         <ChevronDown

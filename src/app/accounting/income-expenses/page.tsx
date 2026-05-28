@@ -7,10 +7,10 @@ import GlobalHeader from "@/components/GlobalHeader";
 
 export default function IncomeExpensesPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="cc-page">
       <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
-      <main className="ml-[316px]">
+      <main className="cc-main">
         <GlobalHeader
           title="Accounting"
           crumbs={[
@@ -20,7 +20,7 @@ export default function IncomeExpensesPage() {
                 ]}
         />
         <section className="px-10 pt-6">
-          <h2 className="text-xl font-semibold text-text-primary">
+          <h2 className="cc-page-title">
             Income &amp; Expenses
           </h2>
           <p className="mt-4 text-sm text-text-muted">

@@ -117,12 +117,12 @@ function ChartsOfAccountInner() {
   const tableKey = `${activeTab}-${search}`;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="cc-page">
       <PrimaryRail />
       <AccountingSidebar />
 
       {/* Content offset: 66px rail + 250px sidebar */}
-      <main className="ml-[316px]">
+      <main className="cc-main">
         {/* Header */}
         <GlobalHeader
           title="Accounting"
@@ -137,8 +137,8 @@ function ChartsOfAccountInner() {
         <AccountCategoryTabs active={activeTab} onChange={setTab} />
 
         {/* Section */}
-        <section className="px-10 pb-10 pt-6">
-          <h2 className="text-xl font-semibold text-text-primary">
+        <section className="cc-section">
+          <h2 className="cc-page-title">
             Charts of Account
           </h2>
 

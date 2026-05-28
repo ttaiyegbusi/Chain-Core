@@ -18,7 +18,7 @@ export function HorizontalScrollControls() {
     <button
       type="button"
       aria-label={label}
-      className="focus-ring flex h-8 w-8 items-center justify-center rounded-md border border-border-strong bg-white text-text-secondary hover:bg-surface-muted"
+      className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg border border-border-strong bg-surface text-text-secondary hover:bg-bg-sub"
     >
       {children}
     </button>
@@ -32,7 +32,7 @@ export function HorizontalScrollControls() {
       <Btn label="Scroll left">
         <ChevronLeft size={16} aria-hidden />
       </Btn>
-      <div className="h-6 flex-1 rounded-md bg-[#ECEEF2]" aria-hidden />
+      <div className="h-6 flex-1 rounded-lg bg-[#ECEEF2]" aria-hidden />
       <Btn label="Scroll right">
         <ChevronRight size={16} aria-hidden />
       </Btn>
@@ -77,10 +77,10 @@ export function PaginationBar({
       onClick={() => onPageChange(p)}
       aria-current={p === page ? "page" : undefined}
       className={[
-        "flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-[13px] transition-colors",
+        "flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-[13px] transition-colors",
         p === page
           ? "bg-surface-muted font-medium text-text-primary"
-          : "text-text-secondary hover:bg-surface-muted",
+          : "text-text-secondary hover:bg-bg-sub",
       ].join(" ")}
     >
       {p}
@@ -96,7 +96,7 @@ export function PaginationBar({
           value={rowsPerPage}
           onChange={(e) => onRowsPerPageChange(Number(e.target.value))}
           aria-label="Rows per page"
-          className="focus-ring h-8 rounded-md border border-border-strong bg-white px-2 text-[13px] text-text-primary"
+          className="focus-ring h-8 rounded-lg border border-border-strong bg-surface px-2 text-[13px] text-text-primary"
         >
           {[8, 16, 24, 50].map((n) => (
             <option key={n} value={n}>
@@ -112,7 +112,7 @@ export function PaginationBar({
           type="button"
           onClick={() => onPageChange(Math.max(1, page - 1))}
           disabled={page === 1}
-          className="focus-ring flex h-8 items-center gap-1 rounded-md border border-border-strong bg-white px-2.5 text-text-secondary hover:bg-surface-muted disabled:opacity-40"
+          className="focus-ring flex h-8 items-center gap-1 rounded-lg border border-border-strong bg-surface px-2.5 text-text-secondary hover:bg-bg-sub disabled:opacity-40"
         >
           <ChevronLeft size={14} aria-hidden /> Prev
         </button>
@@ -131,7 +131,7 @@ export function PaginationBar({
           type="button"
           onClick={() => onPageChange(Math.min(totalPages, page + 1))}
           disabled={page === totalPages}
-          className="focus-ring flex h-8 items-center gap-1 rounded-md border border-border-strong bg-white px-2.5 text-text-secondary hover:bg-surface-muted disabled:opacity-40"
+          className="focus-ring flex h-8 items-center gap-1 rounded-lg border border-border-strong bg-surface px-2.5 text-text-secondary hover:bg-bg-sub disabled:opacity-40"
         >
           Next <ChevronRight size={14} aria-hidden />
         </button>
@@ -153,7 +153,7 @@ export function PaginationBar({
               if (v >= 1 && v <= totalPages) onPageChange(v);
             }
           }}
-          className="focus-ring h-8 w-14 rounded-md border border-border-strong px-2 text-center text-[13px] text-text-primary"
+          className="focus-ring h-8 w-14 rounded-lg border border-border-strong px-2 text-center text-[13px] text-text-primary"
           id="go-to-page"
         />
         <button
@@ -165,7 +165,7 @@ export function PaginationBar({
             const v = Number(el?.value);
             if (v >= 1 && v <= totalPages) onPageChange(v);
           }}
-          className="focus-ring flex h-8 items-center gap-1 rounded-md border border-border-strong bg-white px-3 text-text-secondary hover:bg-surface-muted"
+          className="focus-ring flex h-8 items-center gap-1 rounded-lg border border-border-strong bg-surface px-3 text-text-secondary hover:bg-bg-sub"
         >
           Go <ChevronRight size={14} aria-hidden />
         </button>

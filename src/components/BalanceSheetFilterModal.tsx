@@ -70,12 +70,12 @@ export default function BalanceSheetFilterModal({
     options: string[];
   }) => (
     <div>
-      <label className="mb-2 block text-sm text-text-secondary">{label}</label>
+      <label className="mb-2 block text-sm font-medium text-text-secondary">{label}</label>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="focus-ring h-[46px] w-full appearance-none rounded-md border border-border-strong bg-white px-3.5 pr-10 text-sm text-text-primary"
+          className="cc-control-lg w-full appearance-none pr-10 text-text-primary"
         >
           <option value="">Select</option>
           {options.map((o) => (
@@ -100,18 +100,18 @@ export default function BalanceSheetFilterModal({
       aria-modal="true"
       aria-labelledby="bs-filter-title"
     >
-      <div className="absolute inset-0 bg-black/35" onClick={onClose} aria-hidden />
+      <div className="absolute inset-0 bg-[#0E121B]/45 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
 
       <div
         ref={cardRef}
-        className="relative z-10 flex max-h-[90vh] w-[820px] max-w-[95vw] flex-col rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.25)]"
+        className="relative z-10 flex max-h-[90vh] w-[820px] max-w-[95vw] flex-col cc-modal-panel"
       >
         {/* Header */}
         <div className="flex items-start justify-between px-8 pt-7">
           <div>
             <h2
               id="bs-filter-title"
-              className="text-lg font-semibold text-text-primary"
+              className="font-display text-xl font-semibold text-text-primary"
             >
               Filter by
             </h2>
@@ -123,7 +123,7 @@ export default function BalanceSheetFilterModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-surface-muted text-text-secondary hover:bg-border"
+            className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-bg-sub text-text-secondary hover:bg-border"
           >
             <X size={16} aria-hidden />
           </button>
@@ -170,7 +170,7 @@ export default function BalanceSheetFilterModal({
           </div>
 
           {/* Right column: Level picker */}
-          <div className="border-t border-border bg-surface-muted px-8 py-6 md:border-l md:border-t-0">
+          <div className="border-t border-border bg-bg-sub px-8 py-6 md:border-l md:border-t-0">
             <div className="mb-1 text-sm font-medium text-text-primary">Level</div>
             <div className="mb-4 text-sm text-text-secondary">Select Level</div>
 
@@ -186,7 +186,7 @@ export default function BalanceSheetFilterModal({
                 onChange={(e) => setLevelSearch(e.target.value)}
                 placeholder="Search"
                 aria-label="Search level"
-                className="focus-ring h-[46px] w-full rounded-md border border-border-strong bg-white pl-[42px] pr-3.5 text-sm text-text-primary placeholder:text-text-muted"
+                className="cc-control-lg w-full pl-[42px] pr-3.5"
               />
             </div>
 
@@ -198,7 +198,7 @@ export default function BalanceSheetFilterModal({
                     key={lvl}
                     type="button"
                     onClick={() => setF({ ...f, selectedLevel: lvl })}
-                    className="flex w-full items-center justify-between rounded-md px-1 py-3 text-left"
+                    className="flex w-full items-center justify-between rounded-lg px-1 py-3 text-left"
                   >
                     <span className="text-sm text-text-primary">{lvl}</span>
                     <span
@@ -233,7 +233,7 @@ export default function BalanceSheetFilterModal({
           <button
             type="button"
             onClick={() => onApply(f)}
-            className="focus-ring inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+            className="cc-btn-primary px-6"
           >
             Apply Now
           </button>

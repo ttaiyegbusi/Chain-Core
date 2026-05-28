@@ -31,17 +31,17 @@ export default function BalanceSheetTable({
   walk(data);
 
   return (
-    <div className="mt-4 overflow-x-auto">
-      <table className="w-full min-w-[760px] border-collapse">
+    <div className="cc-table-wrap overflow-x-auto">
+      <table className="cc-table min-w-[760px]">
         <thead>
-          <tr className="bg-surface-muted text-left">
-            <th className="px-6 py-3 text-[13px] font-medium text-text-primary">
+          <tr className="text-left">
+            <th className="cc-th px-6">
               Code
             </th>
-            <th className="px-4 py-3 text-[13px] font-medium text-text-primary">
+            <th className="cc-th">
               Account Name
             </th>
-            <th className="px-6 py-3 text-right text-[13px] font-medium text-text-primary">
+            <th className="cc-th px-6 text-right">
               Balance
             </th>
           </tr>
@@ -73,7 +73,7 @@ export default function BalanceSheetTable({
             return (
               <tr
                 key={row.id}
-                className="border-b border-border transition-colors hover:bg-surface-muted/40"
+                className="transition-colors hover:bg-bg-sub/40"
               >
                 {/* Code cell with chevron + folder + indentation */}
                 <td className="py-3.5 pr-4 align-middle">

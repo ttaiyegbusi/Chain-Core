@@ -24,7 +24,7 @@ export default function Composer({
     <div className="px-6 pb-5">
       {/* Outer container: bg F7F7F7, padding L4 R4 T8 B4 */}
       <div
-        className="rounded-2xl bg-[#F7F7F7]"
+        className="rounded-2xl border border-border bg-bg-sub shadow-xs"
         style={{ paddingLeft: 4, paddingRight: 4, paddingTop: 8, paddingBottom: 4 }}
       >
         {/* Label row */}
@@ -34,11 +34,11 @@ export default function Composer({
         </div>
 
         {/* Inner input row: white container, no stroke */}
-        <div className="flex items-center gap-2 rounded-xl bg-white px-2 py-2">
+        <div className="flex items-center gap-2 rounded-xl bg-surface px-2 py-2">
           <button
             type="button"
             aria-label="Attach file"
-            className="focus-ring flex h-7 w-7 items-center justify-center rounded-md text-text-secondary hover:bg-[#ECECEC]"
+            className="focus-ring flex h-7 w-7 items-center justify-center rounded-lg text-text-secondary hover:bg-border-soft"
           >
             <Plus size={16} aria-hidden />
           </button>
@@ -63,7 +63,7 @@ export default function Composer({
           <button
             type="button"
             aria-label="Reasoning mode"
-            className="focus-ring flex items-center gap-1 rounded-md px-2 py-1 text-xs text-text-secondary hover:bg-[#ECECEC]"
+            className="focus-ring flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-text-secondary hover:bg-border-soft"
           >
             Think
             <ChevronDown size={12} aria-hidden />
@@ -74,7 +74,7 @@ export default function Composer({
             onClick={submit}
             aria-label="Send message"
             disabled={!value.trim()}
-            className="focus-ring flex h-7 w-7 items-center justify-center rounded-full bg-white text-text-secondary ring-1 ring-border-strong transition-colors hover:bg-surface-muted disabled:opacity-60"
+            className="focus-ring flex h-7 w-7 items-center justify-center rounded-full bg-surface text-text-secondary ring-1 ring-border-strong transition-colors hover:bg-bg-sub disabled:opacity-60"
           >
             <ArrowUp size={14} aria-hidden />
           </button>

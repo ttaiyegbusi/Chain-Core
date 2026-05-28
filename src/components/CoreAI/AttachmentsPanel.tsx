@@ -22,12 +22,12 @@ export default function AttachmentsPanel({
 
   return (
     <aside
-      className="flex h-full w-[380px] shrink-0 flex-col border-l border-border bg-white"
+      className="flex h-full w-[380px] shrink-0 flex-col border-l border-border bg-surface"
       aria-label="Attachments"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-5 pb-3 pt-5">
-        <h2 className="text-base font-semibold text-text-primary">
+        <h2 className="font-display text-base font-semibold text-text-primary">
           Attachments
         </h2>
         <button
@@ -92,7 +92,7 @@ export default function AttachmentsPanel({
                   <a
                     href="#"
                     onClick={(e) => e.preventDefault()}
-                    className="focus-ring flex items-center gap-2 rounded-md text-sm text-text-secondary hover:text-primary"
+                    className="focus-ring flex items-center gap-2 rounded-lg text-sm text-text-secondary hover:text-primary"
                   >
                     <Link2 size={14} aria-hidden />
                     {l.label}

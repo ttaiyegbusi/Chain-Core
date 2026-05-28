@@ -70,11 +70,11 @@ export default function TrialBalancePage() {
   const totalPages = Math.ceil(totalItems / rowsPerPage);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="cc-page">
       <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
-      <main className="ml-[316px]">
+      <main className="cc-main">
         <GlobalHeader
           title="Accounting"
           crumbs={[
@@ -84,8 +84,8 @@ export default function TrialBalancePage() {
                 ]}
         />
 
-        <section className="px-10 pb-10 pt-6">
-          <h2 className="text-xl font-semibold text-text-primary">
+        <section className="cc-section">
+          <h2 className="cc-page-title">
             Trial Balance Sheet
           </h2>
 
@@ -103,7 +103,7 @@ export default function TrialBalancePage() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search"
                 aria-label="Search trial balance"
-                className="focus-ring h-10 w-[460px] max-w-full rounded-md border border-border-strong pl-[42px] pr-3.5 text-sm text-text-primary placeholder:text-text-muted"
+                className="focus-ring h-10 w-[460px] max-w-full rounded-lg border border-border-strong pl-[42px] pr-3.5 text-sm text-text-primary placeholder:text-text-muted"
               />
             </div>
 
@@ -111,14 +111,14 @@ export default function TrialBalancePage() {
               <button
                 type="button"
                 onClick={() => setFilterOpen(true)}
-                className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
+                className="cc-btn-secondary"
               >
                 <SlidersHorizontal size={16} aria-hidden />
                 Filter
               </button>
               <button
                 type="button"
-                className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
+                className="cc-btn-secondary"
               >
                 Export
                 <Upload size={16} aria-hidden />

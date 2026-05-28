@@ -13,7 +13,7 @@ export default function AccountCategoryTabs({
     <div
       role="tablist"
       aria-label="Account categories"
-      className="flex h-[46px] items-center gap-7 border-b border-border px-10"
+      className="flex h-12 items-center gap-7 border-b border-border bg-surface px-8"
     >
       {TABS.map((t) => {
         const isActive = t.key === active;
@@ -24,7 +24,7 @@ export default function AccountCategoryTabs({
             aria-selected={isActive}
             onClick={() => onChange(t.key)}
             className={[
-              "focus-ring relative flex h-full items-center text-sm transition-colors",
+              "focus-ring relative flex h-full items-center text-sm font-medium transition-colors",
               isActive
                 ? "font-medium text-primary"
                 : "text-text-secondary hover:text-text-primary",

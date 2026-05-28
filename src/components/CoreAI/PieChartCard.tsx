@@ -10,14 +10,14 @@ export default function PieChartCard({ chart }: { chart: ChartPieResponse }) {
         <h3 className="text-sm font-medium text-text-secondary">{chart.title}</h3>
         <button
           type="button"
-          className="focus-ring flex items-center gap-1.5 rounded-md border border-border-strong bg-white px-3 py-1.5 text-xs text-text-primary hover:bg-surface-muted"
+          className="focus-ring flex items-center gap-1.5 rounded-lg border border-border-strong bg-surface px-3 py-1.5 text-xs text-text-primary hover:bg-bg-sub"
         >
           {chart.period}
           <ChevronDown size={14} className="text-text-secondary" aria-hidden />
         </button>
       </div>
 
-      <div className="flex flex-col items-center gap-6 rounded-xl bg-white p-5 sm:flex-row">
+      <div className="flex flex-col items-center gap-6 rounded-xl bg-surface p-5 sm:flex-row">
         <Donut slices={chart.slices} />
 
         <ul className="flex-1 space-y-3">

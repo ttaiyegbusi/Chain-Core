@@ -14,10 +14,10 @@ export default function GlobalHeader({
   const { open } = useCoreAI();
 
   return (
-    <header className="flex h-[70px] items-center justify-between border-b border-border bg-white pl-10 pr-10">
+    <header className="flex h-[72px] items-center justify-between border-b border-border bg-surface px-8">
       {/* Left: title + breadcrumbs (unchanged from the per-page header) */}
       <div>
-        <h1 className="text-lg font-semibold text-text-primary">{title}</h1>
+        <h1 className="font-display text-[18px] font-semibold leading-6 tracking-[-0.015em] text-text-primary">{title}</h1>
         <div className="mt-0.5">
           <Breadcrumbs items={crumbs} />
         </div>
@@ -28,7 +28,7 @@ export default function GlobalHeader({
         <button
           type="button"
           onClick={open}
-          className="focus-ring inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+          className="cc-btn-primary h-9 px-4"
         >
           <Sparkle />
           Ask Core AI
@@ -37,23 +37,23 @@ export default function GlobalHeader({
         <button
           type="button"
           aria-label="Search"
-          className="focus-ring text-text-secondary transition-colors hover:text-text-primary"
+          className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-bg-sub hover:text-text-primary"
         >
-          <Search size={20} strokeWidth={1.8} aria-hidden />
+          <Search size={20} strokeWidth={1.75} aria-hidden />
         </button>
 
         <button
           type="button"
           aria-label="Messages"
-          className="focus-ring text-text-secondary transition-colors hover:text-text-primary"
+          className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-bg-sub hover:text-text-primary"
         >
-          <MessageSquareMore size={20} strokeWidth={1.8} aria-hidden />
+          <MessageSquareMore size={20} strokeWidth={1.75} aria-hidden />
         </button>
 
         <button
           type="button"
           aria-label="User profile"
-          className="focus-ring flex items-center gap-1 text-sm text-text-primary transition-colors hover:text-text-secondary"
+          className="focus-ring flex h-9 items-center gap-1 rounded-lg px-2 text-sm font-medium text-text-primary transition-colors hover:bg-bg-sub"
         >
           <span className="font-medium">Temitope A.</span>
           <ChevronDown size={16} className="text-text-secondary" aria-hidden />

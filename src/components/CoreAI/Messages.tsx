@@ -108,7 +108,7 @@ function IconAction({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="focus-ring flex h-7 w-7 items-center justify-center rounded-md hover:bg-surface-muted hover:text-text-secondary"
+      className="focus-ring flex h-7 w-7 items-center justify-center rounded-lg hover:bg-bg-sub hover:text-text-secondary"
     >
       {children}
     </button>
@@ -136,7 +136,7 @@ function CollapsibleStatus({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="focus-ring flex items-center gap-1.5 rounded-md text-xs text-text-muted hover:text-text-secondary"
+        className="focus-ring flex items-center gap-1.5 rounded-lg text-xs text-text-muted hover:text-text-secondary"
       >
         <StatusDot kind={kind} />
         <span>{open ? expandedLabel : collapsedLabel}</span>

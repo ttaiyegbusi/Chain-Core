@@ -27,7 +27,7 @@ export default function ChartsToolbar({
           onChange={(e) => onSearch(e.target.value)}
           placeholder="Search"
           aria-label="Search chart of accounts"
-          className="focus-ring h-10 w-[320px] max-w-full rounded-md border border-border-strong pl-[42px] pr-3.5 text-sm text-text-primary placeholder:text-text-muted"
+          className="cc-control w-[320px] max-w-full pl-[42px] pr-3.5"
         />
       </div>
 
@@ -35,7 +35,7 @@ export default function ChartsToolbar({
       <div className="flex items-center gap-2">
         <button
           type="button"
-          className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
+          className="cc-btn-secondary"
         >
           <SlidersHorizontal size={16} aria-hidden />
           Filter
@@ -43,7 +43,7 @@ export default function ChartsToolbar({
 
         <button
           type="button"
-          className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
+          className="cc-btn-secondary"
         >
           Export
           <Upload size={16} aria-hidden />
@@ -52,7 +52,7 @@ export default function ChartsToolbar({
         <button
           type="button"
           onClick={() => router.push("/accounting/charts-of-account/create")}
-          className="focus-ring inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+          className="cc-btn-primary px-4"
         >
           Create New GL Account
           <Plus size={16} aria-hidden />

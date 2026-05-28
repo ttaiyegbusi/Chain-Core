@@ -7,16 +7,16 @@ import { JournalEntry, money } from "@/data/journal";
 function StatusPill({ status }: { status: JournalEntry["status"] }) {
   const styles =
     status === "Approved"
-      ? "text-emerald-600"
+      ? "text-success"
       : status === "Pending"
-      ? "text-amber-600"
-      : "text-red-600";
+      ? "text-warning"
+      : "text-danger";
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-border-strong bg-white px-2.5 py-1 text-xs font-medium">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-success-soft px-2.5 py-1 text-xs font-semibold">
       <span
         className={[
           "flex h-4 w-4 items-center justify-center rounded-full",
-          status === "Approved" ? "bg-emerald-500" : "bg-amber-500",
+          status === "Approved" ? "bg-success" : "bg-warning",
         ].join(" ")}
       >
         <Check size={11} strokeWidth={3} className="text-white" aria-hidden />
@@ -37,7 +37,7 @@ function DetailPanel({ entry }: { entry: JournalEntry }) {
   ];
 
   return (
-    <div className="bg-surface-muted/60 px-6 pb-2 pt-5">
+    <div className="bg-bg-sub px-6 pb-2 pt-5">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Linked To */}
         <div>
@@ -111,18 +111,18 @@ export default function JournalTable({ data }: { data: JournalEntry[] }) {
     });
 
   return (
-    <div className="mt-4 overflow-x-auto">
-      <table className="w-full min-w-[1100px] border-collapse">
+    <div className="cc-table-wrap overflow-x-auto">
+      <table className="cc-table min-w-[1100px]">
         <thead>
-          <tr className="bg-surface-muted text-left">
-            <th className="px-6 py-3 text-[13px] font-medium text-text-primary">ID</th>
-            <th className="px-4 py-3 text-[13px] font-medium text-text-primary">Entry Time</th>
-            <th className="px-4 py-3 text-[13px] font-medium text-text-primary">Total Amount</th>
-            <th className="px-4 py-3 text-[13px] font-medium text-text-primary">Transaction Date</th>
-            <th className="px-4 py-3 text-[13px] font-medium text-text-primary">User</th>
-            <th className="px-4 py-3 text-[13px] font-medium text-text-primary">Category</th>
-            <th className="px-4 py-3 text-center text-[13px] font-medium text-text-primary">Status</th>
-            <th className="w-12 px-4 py-3" aria-label="Actions" />
+          <tr className="text-left">
+            <th className="cc-th px-6">ID</th>
+            <th className="cc-th">Entry Time</th>
+            <th className="cc-th">Total Amount</th>
+            <th className="cc-th">Transaction Date</th>
+            <th className="cc-th">User</th>
+            <th className="cc-th">Category</th>
+            <th className="cc-th text-center">Status</th>
+            <th className="cc-th w-12" aria-label="Actions" />
           </tr>
         </thead>
         <tbody>
@@ -132,11 +132,11 @@ export default function JournalTable({ data }: { data: JournalEntry[] }) {
               <Fragment key={e.id}>
                 <tr
                   className={[
-                    "border-b border-border transition-colors",
-                    isExpanded ? "bg-surface-muted/40" : "hover:bg-surface-muted/30",
+                    "transition-colors",
+                    isExpanded ? "bg-surface-muted/40" : "hover:bg-bg-sub/30",
                   ].join(" ")}
                 >
-                  <td className="py-4 pl-6 pr-4 align-middle">
+                  <td className="cc-td pl-6 pr-4">
                     <button
                       type="button"
                       onClick={() => toggle(e.id)}
@@ -152,29 +152,29 @@ export default function JournalTable({ data }: { data: JournalEntry[] }) {
                       {e.id}
                     </button>
                   </td>
-                  <td className="px-4 py-4 align-middle text-sm text-text-primary">{e.entryTime}</td>
-                  <td className="px-4 py-4 align-middle text-sm text-text-primary">{money(e.totalAmount)}</td>
-                  <td className="px-4 py-4 align-middle text-sm text-text-primary">{e.transactionDate}</td>
-                  <td className="px-4 py-4 align-middle text-sm text-text-primary">{e.user}</td>
-                  <td className="px-4 py-4 align-middle text-sm text-text-primary">{e.category}</td>
-                  <td className="px-4 py-4 text-center align-middle">
+                  <td className="cc-td">{e.entryTime}</td>
+                  <td className="cc-td">{money(e.totalAmount)}</td>
+                  <td className="cc-td">{e.transactionDate}</td>
+                  <td className="cc-td">{e.user}</td>
+                  <td className="cc-td">{e.category}</td>
+                  <td className="cc-td text-center">
                     <StatusPill status={e.status} />
                   </td>
-                  <td className="relative px-4 py-4 text-right align-middle">
+                  <td className="cc-td relative text-right">
                     <button
                       type="button"
                       aria-label={`Actions for ${e.id}`}
                       onClick={() => setOpenMenu(openMenu === e.id ? null : e.id)}
-                      className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-md text-text-secondary hover:bg-surface-muted"
+                      className="focus-ring inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-bg-sub"
                     >
                       <MoreVertical size={18} aria-hidden />
                     </button>
                     {openMenu === e.id && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} aria-hidden />
-                        <div role="menu" className="absolute right-4 top-12 z-20 w-44 overflow-hidden rounded-md border border-border bg-white py-1 text-left shadow-[0_8px_24px_rgba(17,24,39,0.12)]">
+                        <div role="menu" className="absolute right-4 top-12 z-20 w-44 overflow-hidden rounded-lg border border-border bg-surface py-1 text-left shadow-md">
                           {["View entry", "Edit entry", "Reverse entry", "View transaction"].map((label) => (
-                            <button key={label} type="button" role="menuitem" onClick={() => setOpenMenu(null)} className="block w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-surface-muted">
+                            <button key={label} type="button" role="menuitem" onClick={() => setOpenMenu(null)} className="block w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-bg-sub">
                               {label}
                             </button>
                           ))}

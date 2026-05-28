@@ -51,7 +51,7 @@ export default function CreateGLPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="cc-page">
       <PrimaryRail />
 
       {/* Content offset: just the 66px rail (sidebar hidden on create) */}
@@ -88,7 +88,7 @@ export default function CreateGLPage() {
           <button
             type="button"
             aria-label="More options"
-            className="focus-ring flex h-10 w-10 items-center justify-center rounded-md border border-border-strong text-text-secondary hover:bg-surface-muted"
+            className="focus-ring flex h-10 w-10 items-center justify-center rounded-lg border border-border-strong text-text-secondary hover:bg-bg-sub"
           >
             <MoreVertical size={18} aria-hidden />
           </button>
@@ -156,7 +156,7 @@ export default function CreateGLPage() {
       </main>
 
       {/* Sticky footer */}
-      <div className="fixed bottom-0 left-[66px] right-0 z-20 flex h-[72px] items-center justify-end gap-6 border-t border-border bg-white px-11">
+      <div className="fixed bottom-0 left-[66px] right-0 z-20 flex h-[72px] items-center justify-end gap-6 border-t border-border bg-surface px-11">
         <button
           type="button"
           onClick={() => router.push("/accounting/charts-of-account")}
@@ -167,7 +167,7 @@ export default function CreateGLPage() {
         <button
           type="button"
           onClick={handleCreate}
-          className="focus-ring inline-flex h-10 w-[250px] items-center justify-center rounded-md bg-primary text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+          className="focus-ring inline-flex h-10 w-[250px] items-center justify-center rounded-lg bg-primary text-sm font-medium text-white transition-colors hover:bg-primary-hover"
         >
           Create New General Ledger
         </button>

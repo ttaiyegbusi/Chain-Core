@@ -51,11 +51,11 @@ export default function PrimaryRail() {
 
   return (
     <aside
-      className="fixed left-0 top-0 z-30 flex h-screen w-[66px] min-w-[66px] flex-col items-center border-r border-border bg-white"
+      className="fixed left-0 top-0 z-30 flex h-screen w-[66px] min-w-[66px] flex-col items-center border-r border-border bg-surface"
       aria-label="Primary navigation"
     >
       {/* Logo */}
-      <div className="mt-5 mb-4 flex h-[30px] w-[30px] items-center justify-center">
+      <div className="mb-5 mt-5 flex h-[30px] w-[30px] items-center justify-center">
         <Logo size={30} />
       </div>
 
@@ -71,13 +71,13 @@ export default function PrimaryRail() {
               className={[
                 "group relative flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors",
                 active
-                  ? "bg-primary text-white"
-                  : "text-text-secondary hover:bg-surface-muted",
+                  ? "bg-primary text-white shadow-sm"
+                  : "text-text-secondary hover:bg-bg-sub hover:text-text-primary",
               ].join(" ")}
             >
               <Icon size={20} strokeWidth={1.9} aria-hidden />
               {/* Tooltip */}
-              <span className="pointer-events-none absolute left-[46px] z-40 whitespace-nowrap rounded-md bg-white px-2.5 py-1 text-xs font-medium text-text-primary opacity-0 shadow-[0_2px_10px_rgba(17,24,39,0.12)] ring-1 ring-border transition-opacity group-hover:opacity-100">
+              <span className="pointer-events-none absolute left-[46px] z-40 whitespace-nowrap rounded-lg bg-surface px-2.5 py-1 text-xs font-medium text-text-primary opacity-0 shadow-md ring-1 ring-border transition-opacity group-hover:opacity-100">
                 {item.label}
               </span>
             </span>

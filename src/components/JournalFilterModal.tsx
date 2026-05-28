@@ -79,13 +79,13 @@ export default function JournalFilterModal({
     options: string[];
   }) => (
     <div>
-      <label className="mb-2 block text-sm text-text-secondary">{label}</label>
+      <label className="mb-2 block text-sm font-medium text-text-secondary">{label}</label>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className={[
-            "focus-ring h-[46px] w-full appearance-none rounded-md border border-border-strong bg-white px-3.5 pr-10 text-sm",
+            "cc-control-lg w-full appearance-none pr-10",
             value ? "text-text-primary" : "text-text-muted",
           ].join(" ")}
         >
@@ -112,16 +112,16 @@ export default function JournalFilterModal({
       aria-modal="true"
       aria-labelledby="jf-title"
     >
-      <div className="absolute inset-0 bg-black/35" onClick={onClose} aria-hidden />
+      <div className="absolute inset-0 bg-[#0E121B]/45 backdrop-blur-[2px]" onClick={onClose} aria-hidden />
 
       <div
         ref={cardRef}
-        className="relative z-10 flex max-h-[90vh] w-[880px] max-w-[95vw] flex-col rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.25)]"
+        className="relative z-10 flex max-h-[90vh] w-[880px] max-w-[95vw] flex-col cc-modal-panel"
       >
         {/* Header */}
         <div className="flex items-start justify-between px-8 pt-7">
           <div>
-            <h2 id="jf-title" className="text-lg font-semibold text-text-primary">
+            <h2 id="jf-title" className="font-display text-xl font-semibold text-text-primary">
               Filter by
             </h2>
             <p className="mt-1 text-sm text-text-secondary">
@@ -132,7 +132,7 @@ export default function JournalFilterModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-surface-muted text-text-secondary hover:bg-border"
+            className="focus-ring flex h-8 w-8 items-center justify-center rounded-full bg-bg-sub text-text-secondary hover:bg-border"
           >
             <X size={16} aria-hidden />
           </button>
@@ -153,7 +153,7 @@ export default function JournalFilterModal({
           </div>
 
           {/* Right: GL name picker */}
-          <div className="border-t border-border bg-surface-muted px-8 py-6 md:border-l md:border-t-0">
+          <div className="border-t border-border bg-bg-sub px-8 py-6 md:border-l md:border-t-0">
             <div className="mb-1 text-sm font-medium text-text-primary">Name</div>
             <div className="mb-4 text-sm text-text-secondary">
               Select your preferred name
@@ -171,7 +171,7 @@ export default function JournalFilterModal({
                 onChange={(e) => setNameSearch(e.target.value)}
                 placeholder="Search"
                 aria-label="Search GL account"
-                className="focus-ring h-[46px] w-full rounded-md border border-border-strong bg-white pl-[42px] pr-3.5 text-sm text-text-primary placeholder:text-text-muted"
+                className="cc-control-lg w-full pl-[42px] pr-3.5"
               />
             </div>
 
@@ -183,7 +183,7 @@ export default function JournalFilterModal({
                     key={g}
                     type="button"
                     onClick={() => setF({ ...f, glAccount: g })}
-                    className="flex w-full items-center justify-between rounded-md px-1 py-3 text-left"
+                    className="flex w-full items-center justify-between rounded-lg px-1 py-3 text-left"
                   >
                     <span className="text-sm text-text-primary">{g}</span>
                     <span
@@ -216,7 +216,7 @@ export default function JournalFilterModal({
           <button
             type="button"
             onClick={() => onApply(f)}
-            className="focus-ring inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+            className="cc-btn-primary px-6"
           >
             Apply Now
           </button>

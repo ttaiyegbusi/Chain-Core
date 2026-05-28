@@ -44,7 +44,7 @@ export function AskCoreAIButton() {
   return (
     <button
       type="button"
-      className="focus-ring inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+      className="focus-ring inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
     >
       <span className="flex h-4 w-4 items-center justify-center">
         <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>

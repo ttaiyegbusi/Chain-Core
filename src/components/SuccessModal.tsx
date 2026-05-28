@@ -57,7 +57,7 @@ export default function SuccessModal({
     >
       {/* Overlay */}
       <div
-        className="absolute inset-0 bg-black/35"
+        className="absolute inset-0 bg-[#0E121B]/45 backdrop-blur-[2px]"
         onClick={onClose}
         aria-hidden
       />
@@ -65,13 +65,13 @@ export default function SuccessModal({
       {/* Card */}
       <div
         ref={cardRef}
-        className="relative z-10 w-[420px] max-w-[92vw] rounded-2xl bg-white px-8 pb-8 pt-7 shadow-[0_20px_60px_rgba(17,24,39,0.25)]"
+        className="relative z-10 w-[420px] max-w-[92vw] cc-modal-panel px-8 pb-8 pt-7"
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="focus-ring absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-surface-muted text-text-secondary hover:bg-border"
+          className="focus-ring absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-bg-sub text-text-secondary hover:bg-border"
         >
           <X size={16} aria-hidden />
         </button>
@@ -96,7 +96,7 @@ export default function SuccessModal({
             ref={okayRef}
             type="button"
             onClick={onOkay}
-            className="focus-ring mt-7 h-[46px] w-full rounded-md bg-primary text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+            className="cc-btn-primary mt-7 h-[46px] w-full"
           >
             Okay
           </button>
