@@ -90,16 +90,16 @@ export default function CoreAIPanel() {
         transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
       }}
       className={[
-        "fixed z-40 flex flex-col overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.18)] ring-1 ring-border",
-        // animate size + position changes smoothly
-        "transition-[width,height,top,bottom,left,right,transform,opacity] duration-[420ms]",
+        "fixed z-40 flex origin-top-right transform-gpu flex-col overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.18)] ring-1 ring-border",
+        // Animate open/close, and let expand/collapse grow from the right edge toward the left.
+        "transition-[width,height,top,bottom,left,right,transform,opacity] duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
         expanded
-          ? // Centered, larger floating panel (backdrop-free) — like image 3.
-            "left-1/2 top-1/2 h-[86vh] w-[min(1100px,92vw)] -translate-x-1/2 -translate-y-1/2"
+          ? // Expanded panel stays anchored to the right and grows leftward.
+            "right-5 top-[86px] bottom-5 w-[min(1000px,calc(100vw-40px))]"
           : // Right-side docked panel.
             "right-5 top-[86px] bottom-5 w-[450px] max-w-[calc(100vw-40px)]",
-        // open/close fade (layout transition handles size/position)
-        visible ? "opacity-100" : "opacity-0",
+        // Apple-style open/close: soft fade + slight scale + slide from the button side.
+        visible ? "translate-x-0 scale-100 opacity-100" : "translate-x-3 scale-[0.97] opacity-0",
       ].join(" ")}
     >
       {/* Internal header */}
@@ -129,7 +129,12 @@ export default function CoreAIPanel() {
 
       {/* Body row: conversation (+ optional attachments column) */}
       <div className="flex min-h-0 flex-1">
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div
+          className={[
+            "flex min-w-0 flex-1 flex-col transition-[max-width] duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none",
+            expanded ? "mx-auto w-full max-w-[500px]" : "",
+          ].join(" ")}
+        >
           {hasConversation ? (
             <>
               <div ref={conversationRef} className="flex-1 overflow-y-auto px-6">
