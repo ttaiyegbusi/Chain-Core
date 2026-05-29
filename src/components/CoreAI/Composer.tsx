@@ -24,7 +24,7 @@ export default function Composer({
     <div className="px-6 pb-5">
       {/* Outer container: bg F7F7F7, padding L4 R4 T8 B4 */}
       <div
-        className="rounded-2xl bg-[#F7F7F7]"
+        className="coreai-composer-shell rounded-2xl bg-[#F7F7F7]"
         style={{ paddingLeft: 4, paddingRight: 4, paddingTop: 8, paddingBottom: 4 }}
       >
         {/* Label row */}
@@ -34,7 +34,7 @@ export default function Composer({
         </div>
 
         {/* Inner input row: white container, no stroke */}
-        <div className="flex items-center gap-2 rounded-xl bg-white px-2 py-2">
+        <div className="coreai-composer-input-row flex items-center gap-2 rounded-xl bg-white px-2 py-2">
           <button
             type="button"
             aria-label="Attach file"
@@ -74,7 +74,7 @@ export default function Composer({
             onClick={submit}
             aria-label="Send message"
             disabled={!value.trim()}
-            className="focus-ring flex h-7 w-7 items-center justify-center rounded-full bg-white text-text-secondary ring-1 ring-border-strong transition-colors hover:bg-surface-muted disabled:opacity-60"
+            className="coreai-send-button focus-ring flex h-7 w-7 items-center justify-center rounded-full bg-white text-text-secondary ring-1 ring-border-strong hover:bg-surface-muted disabled:opacity-60"
           >
             <ArrowUp size={14} aria-hidden />
           </button>

@@ -22,7 +22,7 @@ export default function AttachmentsPanel({
 
   return (
     <aside
-      className="flex h-full w-[380px] shrink-0 flex-col border-l border-border bg-white"
+      className="coreai-attachments-enter flex h-full w-[380px] shrink-0 flex-col border-l border-border bg-white"
       aria-label="Attachments"
     >
       {/* Header */}
