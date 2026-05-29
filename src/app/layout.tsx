@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { CoreAIProvider } from "@/components/CoreAI/CoreAIProvider";
 import CoreAIModal from "@/components/CoreAI/CoreAIModal";
+import { NotificationsProvider } from "@/components/Notifications/NotificationsProvider";
+import NotificationsPanel from "@/components/Notifications/NotificationsPanel";
 
 export const metadata: Metadata = {
   title: "ChainCore — Accounting",
@@ -17,8 +19,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <CoreAIProvider>
-          {children}
-          <CoreAIModal />
+          <NotificationsProvider>
+            {children}
+            <CoreAIModal />
+            <NotificationsPanel />
+          </NotificationsProvider>
         </CoreAIProvider>
       </body>
     </html>
