@@ -773,8 +773,8 @@ export function getScreenContext(pathname: string): ScreenContext {
       route: pathname,
       pageTitle: "Income & Expenses",
       module: "Accounting",
-      visibleSummary: "This page is reserved for income and expense performance analysis. It should eventually show revenue, expenses, net position, category breakdown, and trend analysis.",
-      suggestedPrompts: ["Show revenue trend", "Break expenses down by category", "Compare income and expenses", "Explain net position"],
+      visibleSummary: "This page lists income and expense accounts in a collapsible GL hierarchy with Code, Account Name, and Balance columns. The Income section groups Interest Income (MYRENTEASE, MyRentEase Credit, ROC) and Other Income (Processing Fees, Penalty). The Expenses section totals $8,666,730.06 across Staff Cost, Operational Cost, Regulatory & Compliance, IT & Infrastructure, and Marketing.",
+      suggestedPrompts: ["Summarize income and expenses", "Show top expense categories", "Compare income and expenses", "What is the net position?"],
     };
   }
   return {
