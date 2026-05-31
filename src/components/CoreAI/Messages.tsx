@@ -129,7 +129,7 @@ export function AssistantBlock({ message }: { message: AssistantMessage }) {
 
       {/* ---- Chart ---- */}
       {showChart && (
-        <div className="coreai-chart-reveal">
+        <div className="coreai-fade-up">
           {message.chart?.kind === "line" && <LineChartCard chart={message.chart} />}
           {message.chart?.kind === "pie" && <PieChartCard chart={message.chart} />}
           {message.chart?.kind === "bar" && <BarChartCard chart={message.chart} />}
@@ -151,14 +151,13 @@ function FollowUpActions({
   onSelect: (prompt: string) => void;
 }) {
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
-      {prompts.map((prompt, index) => (
+    <div className="mt-4 flex flex-wrap gap-2 coreai-fade-up">
+      {prompts.map((prompt) => (
         <button
           key={prompt}
           type="button"
           onClick={() => onSelect(prompt)}
-          style={{ animationDelay: `${index * 45}ms` }}
-          className="coreai-chip-pop focus-ring rounded-full border border-[#E6EAF0] bg-white px-3 py-1.5 text-[11px] font-medium text-[#4B5563] shadow-[0_1px_2px_rgba(16,24,40,0.03)] transition-colors hover:bg-[#F7F8FA] hover:text-[#15181E]"
+          className="focus-ring rounded-full border border-[#E6EAF0] bg-white px-3 py-1.5 text-[11px] font-medium text-[#4B5563] shadow-[0_1px_2px_rgba(16,24,40,0.03)] transition-colors hover:bg-[#F7F8FA] hover:text-[#15181E]"
         >
           {prompt}
         </button>
@@ -195,7 +194,7 @@ function LiveThinking({ message }: { message: AssistantMessage }) {
 
 function LiveResearching({ text }: { text: string }) {
   return (
-    <div className="coreai-research-slide">
+    <div>
       <div className="flex items-center gap-1.5 text-xs text-text-secondary">
         <Sparkle spinning muted />
         <span className="coreai-shimmer-text">Researching</span>
@@ -235,14 +234,9 @@ function IconAction({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className="focus-ring relative flex h-7 w-7 items-center justify-center rounded-md hover:bg-surface-muted hover:text-text-secondary"
+      className="focus-ring flex h-7 w-7 items-center justify-center rounded-md hover:bg-surface-muted hover:text-text-secondary"
     >
       {children}
-      {label === "Copied" && (
-        <span className="coreai-copy-tooltip absolute -top-7 left-1/2 -translate-x-1/2 rounded-md bg-[#111827] px-2 py-1 text-[10px] font-medium text-white shadow-sm">
-          Copied
-        </span>
-      )}
     </button>
   );
 }

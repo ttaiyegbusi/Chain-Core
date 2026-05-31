@@ -4,6 +4,8 @@ import { CoreAIProvider } from "@/components/CoreAI/CoreAIProvider";
 import CoreAIModal from "@/components/CoreAI/CoreAIModal";
 import { NotificationsProvider } from "@/components/Notifications/NotificationsProvider";
 import NotificationsPanel from "@/components/Notifications/NotificationsPanel";
+import { SearchProvider } from "@/components/Search/SearchProvider";
+import SearchModal from "@/components/Search/SearchModal";
 
 export const metadata: Metadata = {
   title: "ChainCore — Accounting",
@@ -20,9 +22,12 @@ export default function RootLayout({
       <body>
         <CoreAIProvider>
           <NotificationsProvider>
-            {children}
-            <CoreAIModal />
-            <NotificationsPanel />
+            <SearchProvider>
+              {children}
+              <CoreAIModal />
+              <NotificationsPanel />
+              <SearchModal />
+            </SearchProvider>
           </NotificationsProvider>
         </CoreAIProvider>
       </body>

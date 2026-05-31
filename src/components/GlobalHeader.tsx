@@ -4,6 +4,7 @@ import { Search, MessageSquareMore, ChevronDown } from "lucide-react";
 import { Breadcrumbs, Crumb } from "./Common";
 import { useCoreAI } from "./CoreAI/CoreAIProvider";
 import { useNotifications } from "./Notifications/NotificationsProvider";
+import { useSearch } from "./Search/SearchProvider";
 
 export default function GlobalHeader({
   title,
@@ -14,6 +15,7 @@ export default function GlobalHeader({
 }) {
   const { open } = useCoreAI();
   const { open: openNotifications } = useNotifications();
+  const { open: openSearch } = useSearch();
 
   return (
     <header className="flex h-[70px] items-center justify-between border-b border-border bg-white pl-10 pr-10">
@@ -38,6 +40,7 @@ export default function GlobalHeader({
 
         <button
           type="button"
+          onClick={openSearch}
           aria-label="Search"
           className="focus-ring text-text-secondary transition-colors hover:text-text-primary"
         >
