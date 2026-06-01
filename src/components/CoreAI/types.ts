@@ -319,14 +319,31 @@ function buildResponseInner(
   const wantsScreenSummary = hasAny(p, [
     "this screen",
     "this page",
+    "this view",
     "what am i looking at",
+    "what is this",
+    "what's this",
+    "what is on this page",
+    "what is on this screen",
+    "what's on this page",
+    "what's on this screen",
     "summarize page",
     "summarise page",
+    "summarize this",
+    "summarise this",
+    "summary of this page",
+    "summary of this",
     "explain this page",
     "explain this screen",
+    "explain this",
+    "describe this page",
     "what can i do here",
+    "what can i do on this page",
     "based on this page",
     "visible data",
+    "tell me about this",
+    "walk me through this",
+    "give me a summary",
   ]);
 
   if (screen && wantsScreenSummary) {
@@ -354,14 +371,26 @@ function buildResponseInner(
   // An income-vs-expense comparison must win over the plain expenses block,
   // even though the text contains the word "expense".
   const wantsComparison =
-    hasAny(p, ["income", "revenue", "profit", "net income"]) &&
-    hasAny(p, ["expense", "vs", "versus", "against", "compare", "comparison"]);
+    hasAny(p, ["income", "revenue", "profit", "net income", "earnings"]) &&
+    hasAny(p, ["expense", "expenses", "cost", "costs", "vs", "versus", "against", "compare", "comparison", "v ", "stack up"]);
 
   // -------------------------------------------------------- CASH POSITION
+  // Outflow-direction phrases like "where is the money going" should fall
+  // through to expenses, not cash.
+  const moneyOutflow =
+    hasAny(p, ["money"]) &&
+    hasAny(p, ["going", "spent on", "spend on", "spend it", "outflow", "leaving", "leaks", "leaving us"]);
   if (
-    hasAny(p, ["cash position", "cash across", "how much cash", "total cash", "liquidity", "cash do we have"]) ||
-    (hasAny(p, ["cash"]) && hasAny(p, ["branch", "total", "position", "have"])) ||
-    (ctx.topic === "cash" && (wantsBranchBreakdown || isBareFollowup))
+    !moneyOutflow &&
+    (hasAny(p, [
+      "cash position", "cash across", "how much cash", "total cash", "liquidity",
+      "cash do we have", "money", "funds", "available funds", "what do we have",
+      "how much money", "how much do we have", "treasury position", "cash on hand",
+      "money in the bank", "available cash", "group cash", "vault", "float",
+      "cash balance", "liquid", "any money",
+    ]) ||
+    (hasAny(p, ["cash"]) && hasAny(p, ["branch", "total", "position", "have", "much", "available"])) ||
+    (ctx.topic === "cash" && (wantsBranchBreakdown || isBareFollowup)))
   ) {
     const bars: BarDatum[] = BRANCH_POSITIONS.map((b) => ({
       label: b.branch,
@@ -389,11 +418,16 @@ function buildResponseInner(
   // ------------------------------------------------------ EXPENSES (category)
   if (
     !wantsComparison &&
-    (hasAny(p, ["expense", "spend", "spent", "cost", "opex", "operating cost"]) ||
+    (hasAny(p, [
+      "expense", "expenses", "spend", "spent", "spending", "cost", "costs", "opex",
+      "operating cost", "operating costs", "outflow", "outgoing", "overhead",
+      "overheads", "where is the money going", "where does the money go",
+      "where did we spend", "burn", "what are we paying for", "money going",
+    ]) ||
       (ctx.topic === "expenses" && (wantsCategoryBreakdown || isBareFollowup)))
   ) {
     const period = detectPeriod(p);
-    if (hasAny(p, ["trend", "over time", "monthly", "month by month", "chart over"])) {
+    if (hasAny(p, ["trend", "over time", "monthly", "month by month", "chart over", "history", "historical", "track", "tracking", "movement"])) {
       const series = MONTHLY_EXPENSE.slice(0, period.count);
       return {
         context: { topic: "expenses" },
@@ -444,8 +478,8 @@ function buildResponseInner(
 
   // ------------------------------------------- INCOME vs EXPENSE comparison
   if (
-    (hasAny(p, ["income"]) && hasAny(p, ["expense", "vs", "versus", "against", "compare"])) ||
-    hasAny(p, ["profit", "net income", "bottom line", "income vs"])
+    (hasAny(p, ["income"]) && hasAny(p, ["expense", "expenses", "cost", "costs", "vs", "versus", "against", "compare"])) ||
+    hasAny(p, ["profit", "net income", "bottom line", "income vs", "are we profitable", "making money", "margin", "p&l", "p and l", "profit and loss"])
   ) {
     const period = detectPeriod(p);
     const inc = ytd(MONTHLY_INCOME);
@@ -472,7 +506,7 @@ function buildResponseInner(
   }
 
   // -------------------------------------------------- REVENUE / INCOME trend
-  if (hasAny(p, ["revenue", "income", "earnings", "turnover"])) {
+  if (hasAny(p, ["revenue", "income", "earnings", "turnover", "top line", "interest income", "fee income", "what came in", "money coming in", "inflow", "inflows"])) {
     const period = detectPeriod(p);
     const series = MONTHLY_INCOME.slice(0, period.count);
     const total = series.reduce((s, x) => s + x, 0);
@@ -502,7 +536,12 @@ function buildResponseInner(
 
   // ---------------------------------------------------------- ASSET MIX
   if (
-    hasAny(p, ["asset allocation", "asset mix", "allocation", "portfolio", "balance sheet", "view balance", "financial position", "assets"]) ||
+    hasAny(p, [
+      "asset allocation", "asset mix", "allocation", "portfolio", "balance sheet",
+      "view balance", "financial position", "assets", "loan book", "loan portfolio",
+      "what do we own", "what we own", "exposures", "exposure", "holdings",
+      "what are we holding", "statement of financial position", "where the money sits",
+    ]) ||
     (ctx.topic === "assets" && isBareFollowup)
   ) {
     if (hasAny(p, ["allocation", "mix", "portfolio", "breakdown", "by category"])) {
@@ -539,7 +578,16 @@ function buildResponseInner(
   }
 
   // ------------------------------------------------------- TRIAL BALANCE
-  if (hasAny(p, ["trial balance", "balanced", "debit", "credit", "out of balance", "off by", "off by 240", "variance"])) {
+  if (hasAny(p, [
+    "trial balance", "balanced", "debit", "credit", "out of balance", "off by",
+    "off by 240", "variance", "books balanced", "books are balanced",
+    "the books", "books", "ledger position", "ledger balance", "ledger balanced",
+    "are we square", "square", "reconcile", "reconciled", "reconciles",
+    "do the totals tie", "totals tie", "do the totals reconcile", "tie out",
+    "tied out", "in balance", "ledger off", "control totals",
+    "tb", "tb balanced", "out by", "doesn't balance", "doesn't tie",
+    "won't balance", "what's wrong with the trial",
+  ])) {
     const { debit, credit } = TRIAL_BALANCE_TOTALS;
     const diff = debit - credit;
     const variance = Math.abs(diff);
@@ -723,7 +771,13 @@ function buildResponseInner(
 
   // ---------------------------------------------------- PENDING APPROVALS
   if (
-    hasAny(p, ["pending", "awaiting approval", "approve", "approval", "maker", "checker", "to approve", "sign off"])
+    hasAny(p, [
+      "pending", "awaiting approval", "approve", "approval", "approvals", "maker",
+      "checker", "to approve", "sign off", "sign-off", "need approving",
+      "waiting for me", "in my queue", "my queue", "queue", "to sign",
+      "needs signing", "what needs my attention", "what needs attention",
+      "what's waiting", "outstanding entries", "waiting on me", "anything for me to approve",
+    ])
   ) {
     const lines = PENDING_APPROVALS.map(
       (a) => `• ${a.id} — ${a.description}: ${naira(a.amount)} (raised by ${a.maker}, ${a.submitted})`
@@ -745,7 +799,12 @@ function buildResponseInner(
   }
 
   // ----------------------------------------------------- TOP ACCOUNTS
-  if (hasAny(p, ["top account", "highest balance", "largest account", "biggest account", "top gl", "largest balance"])) {
+  if (hasAny(p, [
+    "top account", "highest balance", "largest account", "biggest account",
+    "top gl", "largest balance", "biggest balance", "biggest exposures",
+    "largest exposures", "where is the most money", "ranking", "rank accounts",
+    "top 5 accounts", "top five accounts", "largest gl",
+  ])) {
     const bars: BarDatum[] = TOP_ACCOUNTS.map((a) => ({
       label: a.code,
       value: a.balance,
@@ -769,7 +828,13 @@ function buildResponseInner(
   }
 
   // ---------------------------------------------------------------- CBN
-  if (hasAny(p, ["cbn", "prudential", "regulatory return", "returns", "capital adequacy", "compliance"])) {
+  if (hasAny(p, [
+    "cbn", "prudential", "regulatory return", "regulatory returns", "returns",
+    "capital adequacy", "compliance", "are we ready", "ready for cbn",
+    "regulator", "regulators", "submission", "liquidity ratio", "car",
+    "regulatory", "exception report", "supervisory", "supervision",
+    "any breaches", "in breach", "breaching", "any issues with cbn",
+  ])) {
     return {
       context: { topic: "cbn" },
       message: assistant({
@@ -786,7 +851,11 @@ function buildResponseInner(
   }
 
   // ------------------------------------------------------------ CLIENTS
-  if (hasAny(p, ["client", "customer", "depositor", "account holder"])) {
+  if (hasAny(p, [
+    "client", "clients", "customer", "customers", "depositor", "depositors",
+    "account holder", "account holders", "view clients", "show clients",
+    "how many customers", "customer base", "kyc",
+  ])) {
     return {
       context: { topic: "clients" },
       message: assistant({
@@ -850,7 +919,7 @@ function buildResponseInner(
   }
 
   // ------------------------------------------------- Greeting / smalltalk
-  if (hasAny(p, ["hello", "hi ", "hey", "good morning", "good afternoon"]) && p.length < 25) {
+  if (hasAny(p, ["hello", "hi ", "hey", "good morning", "good afternoon", "good evening", "morning", "afternoon", "evening", "yo", "hiya", "howdy", "what's up", "whats up"]) && p.length < 30) {
     return {
       context: { topic: "none" },
       message: assistant({
@@ -862,19 +931,105 @@ function buildResponseInner(
     };
   }
 
-  // ---------------------------------------------------- Conversational fallback
+  // ---------------------------------------------------- Smart fallback
+  //
+  // The engine didn't match a specific intent. Rather than dumping a menu,
+  // we try two graceful paths:
+  //   1. If the user is on a real banking page, fall through to summarising
+  //      that page — most "unmatched" questions on a page are actually
+  //      questions about that page.
+  //   2. Otherwise, respond like a colleague who didn't quite hear the
+  //      question — short, references the current topic, suggests just two
+  //      likely guesses based on the words actually used.
+
+  // Path 1: screen-aware fallback. Re-use the same screen-summary response
+  // shape, but with copy that acknowledges the engine wasn't certain.
+  if (screen) {
+    return {
+      context: { topic: ctx.topic },
+      message: assistant({
+        thinking: [
+          "Looking at the active ChainCore screen",
+          "Summarising what's visible",
+        ],
+        thinkingSeconds: 2,
+        researching: `Using the ${screen.pageTitle} page as context.`,
+        answer:
+          `I'm not sure I caught the specific question, so let me start from what's in front of you. You're on ${screen.pageTitle} in the ${screen.module} module. ${screen.visibleSummary}\n\nIf this wasn't what you meant, the chips below cover the most common things asked from here.`,
+        followUps: screen.suggestedPrompts,
+      }),
+    };
+  }
+
+  // Path 2: no page context. Best-guess short reply based on word hints.
+  const guess = guessIntent(p, ctx);
   return {
     context: { topic: ctx.topic },
     message: assistant({
-      thinking: [
-        "Checking which modules can answer this",
-        "Looking across accounting, customer and compliance data",
-      ],
-      thinkingSeconds: 2,
-      researching: "Searching ChainCore.",
-      answer:
-        "I want to make sure I pull the right figures. I can help with things like your cash position by branch, revenue or expense trends, expenses by category, income vs expenses, the balance sheet and asset mix, whether your trial balance is balanced, journal entries pending approval, your top GL accounts, or CBN Prudential Returns. Which of those is closest to what you need?",
+      thinking: ["Listening more carefully to the question"],
+      thinkingSeconds: 1,
+      researching: "",
+      answer: guess.answer,
+      followUps: guess.followUps,
     }),
+  };
+}
+
+/**
+ * Best-effort guess at what the user might have meant when no specific
+ * intent matched and there's no page to fall back on. Looks for soft
+ * hints in the words and the current topic.
+ */
+function guessIntent(
+  p: string,
+  ctx: ConversationContext
+): { answer: string; followUps: string[] } {
+  // If we're already mid-topic, lean into that topic.
+  if (ctx.topic !== "none") {
+    const topicReadable: Record<Topic, string> = {
+      cash: "your cash position",
+      expenses: "expenses",
+      income: "income",
+      revenue: "revenue",
+      net: "income vs expenses",
+      assets: "the balance sheet",
+      "trial-balance": "the trial balance",
+      approvals: "pending approvals",
+      "top-accounts": "your top GL accounts",
+      cbn: "CBN returns",
+      clients: "customers",
+      none: "your last question",
+    };
+    return {
+      answer: `I'm not sure I followed — we were just on ${topicReadable[ctx.topic]}. Did you want to dig deeper into that, or move on to something else?`,
+      followUps: FOLLOW_UPS_BY_TOPIC[ctx.topic] ?? FOLLOW_UPS_BY_TOPIC.none,
+    };
+  }
+
+  // Soft word hints — pick the two most likely things they might have meant.
+  const hints: Array<{ key: string; chip: string }> = [];
+  if (hasAny(p, ["money", "fund", "cash", "liquid", "have"])) hints.push({ key: "cash", chip: "Show cash position by branch" });
+  if (hasAny(p, ["balance", "asset", "liabili", "equity", "sheet", "own"])) hints.push({ key: "assets", chip: "Show the balance sheet" });
+  if (hasAny(p, ["tie", "square", "match", "book", "ledger", "debit", "credit", "off", "balanc"])) hints.push({ key: "tb", chip: "Is my trial balance balanced?" });
+  if (hasAny(p, ["pending", "approve", "queue", "sign", "wait", "outstanding"])) hints.push({ key: "approvals", chip: "What's pending approval?" });
+  if (hasAny(p, ["spend", "cost", "expens", "outflow", "burn"])) hints.push({ key: "expenses", chip: "Break expenses down by category" });
+  if (hasAny(p, ["earn", "revenue", "income", "profit", "margin"])) hints.push({ key: "revenue", chip: "Show me revenue trend" });
+  if (hasAny(p, ["cbn", "regul", "compliance", "submit", "ratio"])) hints.push({ key: "cbn", chip: "Are we ready for CBN returns?" });
+  if (hasAny(p, ["who", "customer", "client", "depositor"])) hints.push({ key: "clients", chip: "Show me customer summary" });
+
+  if (hints.length > 0) {
+    const top = hints.slice(0, 2);
+    return {
+      answer: `I'm not sure I caught that. Did you mean one of these?`,
+      followUps: top.map((h) => h.chip),
+    };
+  }
+
+  // Genuine novel question — short, honest.
+  return {
+    answer:
+      "I'm not sure I followed that. I'm best with questions about your cash, balance sheet, trial balance, journal approvals, or CBN returns. Try rephrasing, or pick one of these:",
+    followUps: ["Show me my cash position", "What's pending approval?"],
   };
 }
 
