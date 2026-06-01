@@ -9,7 +9,7 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   AssistantMessage,
   AssistantPhase,
@@ -54,6 +54,7 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
   const [messages, setMessages] = useState<CoreAIMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Conversation context for multi-turn follow-ups.
   const ctxRef = useRef<ConversationContext>({ topic: "none" });
@@ -151,6 +152,15 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
             const tDone = setTimeout(() => {
               patch(id, (m) => ({ ...m, phase: "done", revealedChars: full }));
               setIsStreaming(false);
+              // If this assistant turn has a navigation action, trigger it
+              // a beat after the answer settles — gives the user a moment
+              // to read the message before the page changes.
+              if (assistantMsg.action?.kind === "navigate") {
+                const tNav = setTimeout(() => {
+                  router.push(assistantMsg.action!.href);
+                }, 700);
+                timers.current.push(tNav);
+              }
             }, 120);
             timers.current.push(tDone);
           }
@@ -159,7 +169,7 @@ export function CoreAIProvider({ children }: { children: ReactNode }) {
       }, startAnswerAt);
       timers.current.push(tStart);
     },
-    [patch, setPhase, pathname]
+    [patch, setPhase, pathname, router]
   );
 
   const reset = useCallback(() => {

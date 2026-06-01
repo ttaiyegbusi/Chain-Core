@@ -123,6 +123,13 @@ export interface AssistantMessage {
   chart?: ChartResponse;
   attachments?: Attachments;
   followUps?: string[];
+  /** Optional follow-up navigation triggered once the answer streams in.
+   *  Used for "open it" style actions where Core AI takes the user somewhere. */
+  action?: {
+    kind: "navigate";
+    href: string;
+    label: string; // what to call the destination in the answer
+  };
   // streaming state — driven by the provider as the response "plays"
   phase: AssistantPhase;
   // index of thinking lines revealed so far (for the live animation)
@@ -157,6 +164,13 @@ export type Topic =
 
 export interface ConversationContext {
   topic: Topic;
+  /** The last specific entity Core AI named in its previous answer. Used to
+   *  resolve "it" / "that entry" / "open it" across turns. Reset when the
+   *  next turn introduces a new entity or switches topic away. */
+  lastEntity?: {
+    kind: "journal";
+    id: string; // e.g. "JV-2037"
+  };
 }
 
 const DEFAULT_FOLLOW_UPS = [
@@ -525,22 +539,184 @@ function buildResponseInner(
   }
 
   // ------------------------------------------------------- TRIAL BALANCE
-  if (hasAny(p, ["trial balance", "balanced", "debit", "credit", "out of balance", "off by"])) {
+  if (hasAny(p, ["trial balance", "balanced", "debit", "credit", "out of balance", "off by", "off by 240", "variance"])) {
     const { debit, credit } = TRIAL_BALANCE_TOTALS;
     const diff = debit - credit;
+    const variance = Math.abs(diff);
     const balanced = diff === 0;
+
+    if (balanced) {
+      return {
+        context: { topic: "trial-balance" },
+        message: assistant({
+          thinking: [
+            "Reading total debit and credit postings",
+            "Comparing the two control totals",
+          ],
+          thinkingSeconds: 3,
+          researching: "Summing all posted debits and credits.",
+          answer: `Your trial balance is in balance. Total debits and total credits both equal ${naira(debit)}, so the difference is ₦0. You're clear to proceed to reporting.`,
+        }),
+      };
+    }
+
+    // There's a variance — investigate. Look in the pending queue for an
+    // entry whose amount matches the variance, or one already flagged as
+    // the cause. This is the cross-data step that turns retrieval into
+    // analysis.
+    const culprit = PENDING_APPROVALS.find(
+      (a) => a.causesVariance || a.amount === variance
+    );
+    const side = diff > 0 ? "debit" : "credit";
+
+    if (culprit) {
+      // Carry the entry into the conversation context so the next turn can
+      // resolve "open it" / "that entry" to this specific JV.
+      return {
+        context: {
+          topic: "trial-balance",
+          lastEntity: { kind: "journal", id: culprit.id },
+        },
+        message: assistant({
+          thinking: [
+            "Reading total debit and credit postings",
+            "Confirming the variance is real and not a rounding artefact",
+            "Searching the pending journal queue for entries that could explain it",
+            "Matching the variance amount against open entries",
+          ],
+          thinkingSeconds: 5,
+          researching: `Cross-checking the variance against the maker-checker queue.`,
+          answer:
+            `Your trial balance is out by ${naira(variance)}. ` +
+            `Debits total ${naira(debit)} against credits of ${naira(credit)}, so you're carrying ${naira(variance)} more on the ${side} side.\n\n` +
+            `The most common cause is a one-sided journal. I checked your queue and there's one entry that fits: ${culprit.id}, raised by ${culprit.maker} (${culprit.submitted.toLowerCase()}) — ${culprit.description.toLowerCase()} for exactly ${naira(culprit.amount)}.` +
+            (culprit.rootCause
+              ? ` ${culprit.rootCause}${culprit.rootAccount ? ` The mapping gap is on account ${culprit.rootAccount}.` : ""}`
+              : "") +
+            `\n\nWant me to open ${culprit.id} so you can correct it?`,
+          followUps: [
+            `Open ${culprit.id}`,
+            `Who is the duty checker tonight?`,
+            `Show all pending approvals`,
+          ],
+          action: {
+            kind: "navigate",
+            href: `/accounting/journal?focus=${encodeURIComponent(culprit.id)}`,
+            label: culprit.id,
+          },
+        }),
+      };
+    }
+
+    // Variance but no matching entry found — answer honestly, no false claims.
     return {
       context: { topic: "trial-balance" },
       message: assistant({
         thinking: [
           "Reading total debit and credit postings",
-          "Comparing the two control totals",
+          "Searching the pending queue for matching amounts",
         ],
         thinkingSeconds: 3,
-        researching: "Summing all posted debits and credits.",
-        answer: balanced
-          ? `Your trial balance is in balance. Total debits and total credits both equal ${naira(debit)}, so the difference is ₦0. You're clear to proceed to reporting.`
-          : `Your trial balance is out by ${naira(Math.abs(diff))}. Debits total ${naira(debit)} and credits total ${naira(credit)}. The most common cause is a one-sided or partially-posted journal — I'd start by reviewing entries still pending approval.`,
+        researching: "Looking across the queue.",
+        answer: `Your trial balance is out by ${naira(variance)}. Debits total ${naira(debit)} against credits of ${naira(credit)}. I checked your pending queue but didn't find an entry matching the variance — it may be sitting in an earlier period, or split across two entries. I'd start by reviewing recent postings.`,
+      }),
+    };
+  }
+
+  // -------------------------------------- OPEN <journal> / OPEN IT / etc.
+  // Resolves "open it", "open that entry", "show me", or an explicit JV id.
+  {
+    // Try to find an explicit JV id in the prompt (handles "open JV-2037",
+    // "show JV2037", etc.).
+    const explicitId = (() => {
+      const m = p.match(/\bjv[-\s]?(\d{3,5})\b/i);
+      return m ? `JV-${m[1]}` : null;
+    })();
+
+    const wantsToOpen =
+      hasAny(p, [
+        "open it",
+        "open that",
+        "open the entry",
+        "open the journal",
+        "show it",
+        "show that entry",
+        "show the entry",
+        "take me to it",
+        "go to it",
+        "let's correct",
+        "let me see it",
+        "view it",
+      ]) ||
+      !!explicitId ||
+      (ctx.lastEntity && hasAny(p, ["open", "show", "view", "correct"]) && p.length < 30);
+
+    if (wantsToOpen) {
+      const targetId = explicitId ?? ctx.lastEntity?.id;
+      if (targetId) {
+        const entry = PENDING_APPROVALS.find((a) => a.id === targetId);
+        if (entry) {
+          return {
+            context: {
+              topic: "approvals",
+              lastEntity: { kind: "journal", id: entry.id },
+            },
+            message: assistant({
+              thinking: [
+                `Locating ${entry.id} in the journal`,
+                "Preparing the correction view",
+              ],
+              thinkingSeconds: 2,
+              researching: `Opening ${entry.id} for review.`,
+              answer:
+                `Opening ${entry.id} now. ` +
+                (entry.rootAccount
+                  ? `I've highlighted the unbalanced line — the credit side is blank where it should reference account ${entry.rootAccount}. `
+                  : "") +
+                `Once you save the correction it goes back into the maker-checker queue. You can't auto-approve your own correction; an authorised checker will need to sign it off.`,
+              followUps: [
+                "Who is the duty checker tonight?",
+                "Show all pending approvals",
+                "What does period mapping mean?",
+              ],
+              action: {
+                kind: "navigate",
+                href: `/accounting/journal?focus=${encodeURIComponent(entry.id)}`,
+                label: entry.id,
+              },
+            }),
+          };
+        }
+      }
+      // Fall through to other handlers if we can't resolve a target.
+    }
+  }
+
+  // -------------------- Who is the duty checker tonight? (follow-on Q) --
+  if (hasAny(p, ["duty checker", "who is the checker", "who approves", "approver tonight", "duty officer"])) {
+    return {
+      context: { topic: ctx.topic, lastEntity: ctx.lastEntity },
+      message: assistant({
+        thinking: ["Reading the duty roster"],
+        thinkingSeconds: 2,
+        researching: "Checking tonight's roster.",
+        answer:
+          "B. Adeyemi is on duty tonight as authorised checker. Her queue is usually cleared by 6pm. " +
+          "If the correction is urgent and she's away, the escalation path is the Finance Manager for your branch.",
+      }),
+    };
+  }
+
+  // ------------------------------ Glossary: what does period mapping mean? --
+  if (hasAny(p, ["period mapping", "what does period mapping", "what is period mapping"])) {
+    return {
+      context: { topic: ctx.topic, lastEntity: ctx.lastEntity },
+      message: assistant({
+        thinking: ["Pulling the glossary entry"],
+        thinkingSeconds: 1,
+        researching: "",
+        answer:
+          "Every GL account needs to be mapped to the accounting periods it can post to. If an account is missing the mapping for the current period, the system accepts one side of a journal (usually the debit) but silently drops the matching credit — leaving the trial balance out. It's a setup gap, not a posting error, so the fix is in the account configuration rather than the journal itself.",
       }),
     };
   }

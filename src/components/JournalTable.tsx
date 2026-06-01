@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect, useRef } from "react";
 import { ChevronDown, ChevronRight, Check, MoreVertical } from "lucide-react";
 import { JournalEntry, money } from "@/data/journal";
 
@@ -99,9 +99,19 @@ function DetailPanel({ entry }: { entry: JournalEntry }) {
   );
 }
 
-export default function JournalTable({ data }: { data: JournalEntry[] }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+export default function JournalTable({
+  data,
+  focusId,
+}: {
+  data: JournalEntry[];
+  focusId?: string;
+}) {
+  const [expanded, setExpanded] = useState<Set<string>>(
+    () => (focusId ? new Set([focusId]) : new Set())
+  );
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const focusRowRef = useRef<HTMLTableRowElement | null>(null);
+  const [flashId, setFlashId] = useState<string | null>(focusId ?? null);
 
   const toggle = (id: string) =>
     setExpanded((prev) => {
@@ -109,6 +119,26 @@ export default function JournalTable({ data }: { data: JournalEntry[] }) {
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+
+  // Scroll the focused row into view and flash a highlight ring briefly.
+  useEffect(() => {
+    if (!focusId) return;
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      next.add(focusId);
+      return next;
+    });
+    setFlashId(focusId);
+    // wait a frame so the row is rendered before scrolling
+    const r = requestAnimationFrame(() => {
+      focusRowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const t = setTimeout(() => setFlashId(null), 2400);
+    return () => {
+      cancelAnimationFrame(r);
+      clearTimeout(t);
+    };
+  }, [focusId]);
 
   return (
     <div className="mt-4 overflow-x-auto">
@@ -128,12 +158,16 @@ export default function JournalTable({ data }: { data: JournalEntry[] }) {
         <tbody>
           {data.map((e) => {
             const isExpanded = expanded.has(e.id);
+            const isFocused = e.id === focusId;
+            const isFlashing = e.id === flashId;
             return (
               <Fragment key={e.id}>
                 <tr
+                  ref={isFocused ? focusRowRef : null}
                   className={[
                     "border-b border-border transition-colors",
                     isExpanded ? "bg-surface-muted/40" : "hover:bg-surface-muted/30",
+                    isFlashing ? "coreai-row-flash" : "",
                   ].join(" ")}
                 >
                   <td className="py-4 pl-6 pr-4 align-middle">

@@ -242,3 +242,16 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .coreai-menu-in { animation: none !important; }
 }
+
+/* Core AI deep-link row highlight: gentle blue background pulse */
+@keyframes coreai-row-flash {
+  0%   { background-color: rgba(49, 87, 246, 0.14); }
+  60%  { background-color: rgba(49, 87, 246, 0.08); }
+  100% { background-color: transparent; }
+}
+.coreai-row-flash {
+  animation: coreai-row-flash 2.4s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .coreai-row-flash { animation: none !important; }
+}

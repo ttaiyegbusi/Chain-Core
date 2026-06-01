@@ -60,6 +60,27 @@ function entry(
 }
 
 export const JOURNAL_ENTRIES: JournalEntry[] = [
+  // The pending entry that causes the ₦240,000 trial balance variance.
+  // Referenced by Core AI when investigating the trial balance.
+  {
+    id: "JV-2037",
+    entryTime: "Yesterday at 4:48pm",
+    totalAmount: 240_000,
+    transactionDate: "27th May, 2026",
+    user: "C. Nwosu",
+    category: "Manual Entry",
+    status: "Pending",
+    detail: {
+      level: "Head Office",
+      branch: "Lagos (HQ)",
+      notes:
+        "Reclassification of fixed asset disposal — credit side missing due to period mapping gap on account 160500.",
+      transactionId: "TXN-04482-MAY",
+      accountId: "160500",
+      debit: [{ glCode: "160500", glName: "Disposal of Fixed Assets", amount: 240_000 }],
+      credit: [], // intentionally one-sided — this is the variance
+    },
+  },
   entry("2012", "Standard Booking"),
   entry("2013", "Manual Entry"),
   entry("2014", "Manual Entry"),

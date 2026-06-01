@@ -134,12 +134,29 @@ export interface PendingApproval {
   amount: number;
   maker: string;
   submitted: string;
+  /** If set, this entry is the cause of a known variance — used by Core AI
+   *  to investigate trial-balance imbalances and name the responsible entry. */
+  causesVariance?: boolean;
+  /** Plain-language explanation of what went wrong, surfaced by Core AI. */
+  rootCause?: string;
+  /** GL account involved in the root cause (referenced by Core AI). */
+  rootAccount?: string;
 }
 
 export const PENDING_APPROVALS: PendingApproval[] = [
   { id: "JV-2031", description: "Inter-branch funds transfer – Lagos → Abuja", amount: 250_000_000, maker: "A. Okafor", submitted: "Today, 9:14am" },
   { id: "JV-2034", description: "Provision for loan impairment – Q2", amount: 88_500_000, maker: "B. Adeyemi", submitted: "Today, 10:02am" },
-  { id: "JV-2037", description: "Reclassification – fixed asset disposal", amount: 14_200_000, maker: "C. Nwosu", submitted: "Yesterday, 4:48pm" },
+  {
+    id: "JV-2037",
+    description: "Reclassification – fixed asset disposal",
+    amount: 240_000,
+    maker: "C. Nwosu",
+    submitted: "Yesterday, 4:48pm",
+    causesVariance: true,
+    rootCause:
+      "Debit posted but the matching credit didn't go through — the disposal account was missing its period mapping for May 2026.",
+    rootAccount: "160500",
+  },
 ];
 
 export const PENDING_TOTAL = PENDING_APPROVALS.reduce((s, p) => s + p.amount, 0);
@@ -147,9 +164,10 @@ export const PENDING_TOTAL = PENDING_APPROVALS.reduce((s, p) => s + p.amount, 0)
 // --------------------------------------------------- Trial balance check
 
 // Group debit/credit totals — used to answer "is my trial balance balanced?"
+// Currently out by ₦240,000 — caused by JV-2037 (a one-sided posting).
 export const TRIAL_BALANCE_TOTALS = {
-  debit: 41_660_000_000,
-  credit: 41_660_000_000, // balanced
+  debit: 41_660_240_000,
+  credit: 41_660_000_000,
 };
 
 // --------------------------------------------------------- CBN returns

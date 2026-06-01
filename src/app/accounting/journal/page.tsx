@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, Upload, Plus } from "lucide-react";
 import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
@@ -18,8 +18,20 @@ import {
 } from "@/components/Pagination";
 import { JOURNAL_ENTRIES } from "@/data/journal";
 
+// useSearchParams() requires a Suspense boundary in Next.js 14 App Router
+// when used inside a client page. Wrap the inner component.
 export default function JournalPage() {
+  return (
+    <Suspense fallback={null}>
+      <JournalPageInner />
+    </Suspense>
+  );
+}
+
+function JournalPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const focusId = searchParams.get("focus") ?? undefined;
   const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [filters, setFilters] = useState<JournalFilters>(DEFAULT_JOURNAL_FILTERS);
@@ -112,7 +124,7 @@ export default function JournalPage() {
             </div>
           </div>
 
-          <JournalTable data={data} />
+          <JournalTable data={data} focusId={focusId} />
 
           <HorizontalScrollControls />
 
