@@ -118,11 +118,18 @@ export default function OrganizationPage() {
   };
 
   const getDefaultPosition = (parentId?: string, placement: Placement = "root") => {
-    if (!parentId) return { x: 420, y: 120 };
-    const parentPosition = positions[parentId] || { x: 420, y: 120 };
-    if (placement === "left") return { x: parentPosition.x - 340, y: parentPosition.y };
+    if (!parentId) return { x: 560, y: 120 };
+    const parent = nodes.find((node) => node.id === parentId);
+    const parentPosition = positions[parentId] || { x: 560, y: 120 };
+
+    if (placement === "left") return { x: Math.max(40, parentPosition.x - 340), y: parentPosition.y };
     if (placement === "right") return { x: parentPosition.x + 340, y: parentPosition.y };
-    return { x: parentPosition.x, y: parentPosition.y + 170 };
+
+    const existingChildren = nodes.filter((node) => node.parentId === parentId).length;
+    const childSpacing = 340;
+    const levelY = parentPosition.y + 180;
+    const startX = parentPosition.x - (existingChildren * childSpacing) / 2;
+    return { x: Math.max(40, startX + existingChildren * childSpacing), y: levelY };
   };
 
   const createNode = () => {
@@ -308,7 +315,7 @@ function Toolbar({ search, setSearch, onAdd, nodesExist }: { search: string; set
       <div className="flex items-center gap-2">
         <button className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-4 text-sm text-text-primary hover:bg-surface-muted" type="button"><SlidersHorizontal size={16} />Filter</button>
         <button className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-4 text-sm text-text-primary hover:bg-surface-muted" type="button">Export <Upload size={16} /></button>
-        <button onClick={onAdd} className="focus-ring inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover" type="button">{nodesExist ? "Create Node" : "Create First Node"} <Plus size={16} /></button>
+        <button onClick={onAdd} className="focus-ring inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover" type="button">Add Node Levels <Plus size={16} /></button>
       </div>
     </div>
   );
@@ -349,29 +356,53 @@ function LevelsCanvas({ levels, updateLevelTitle, newLevelTitle, setNewLevelTitl
 
 function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId, openCreateNode, onNodePointerDown, onCanvasPointerMove, onCanvasPointerUp, draggingId }: { nodes: OrgNode[]; levels: OrgLevel[]; positions: Record<string, NodePosition>; selectedNodeId: string; setSelectedNodeId: (id: string) => void; openCreateNode: (id?: string, placement?: Placement) => void; onNodePointerDown: (id: string, event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerUp: () => void; draggingId: string | null }) {
   const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes]);
+  const childrenByParent = useMemo(() => {
+    const map = new Map<string, OrgNode[]>();
+    nodes.forEach((node) => {
+      if (!node.parentId) return;
+      const siblings = map.get(node.parentId) || [];
+      siblings.push(node);
+      map.set(node.parentId, siblings);
+    });
+    return map;
+  }, [nodes]);
+
   return (
     <div className="organization-grid relative min-h-[760px] overflow-auto p-8" onPointerMove={onCanvasPointerMove} onPointerUp={onCanvasPointerUp} onPointerCancel={onCanvasPointerUp}>
       {nodes.length === 0 ? (
         <EmptyOrganizationState onCreate={() => openCreateNode(undefined, "root")} />
       ) : (
-        <div className="relative h-[1120px] min-w-[1280px]">
+        <div className="relative h-[1120px] min-w-[1400px]">
           <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
-            {nodes.map((node) => {
-              if (!node.parentId) return null;
-              const parent = nodeById.get(node.parentId);
-              if (!parent) return null;
-              const from = positions[parent.id] || { x: 420, y: 120 };
-              const to = positions[node.id] || { x: 420, y: 290 };
-              const startX = from.x + 135;
-              const startY = from.y + 84;
-              const endX = to.x + 135;
-              const endY = to.y;
-              const midY = startY + (endY - startY) / 2;
-              return <path key={`${parent.id}-${node.id}`} d={`M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`} fill="none" stroke="#DDE3EA" strokeWidth="1.5" />;
+            {Array.from(childrenByParent.entries()).map(([parentId, children]) => {
+              const parent = nodeById.get(parentId);
+              if (!parent || children.length === 0) return null;
+              const parentPosition = positions[parentId] || { x: 560, y: 120 };
+              const parentCenterX = parentPosition.x + 135;
+              const parentBottomY = parentPosition.y + 70;
+              const childAnchors = children.map((child) => {
+                const childPosition = positions[child.id] || { x: parentPosition.x, y: parentPosition.y + 180 };
+                return { id: child.id, x: childPosition.x + 135, y: childPosition.y };
+              });
+              const firstChild = childAnchors.reduce((min, child) => (child.x < min.x ? child : min), childAnchors[0]);
+              const lastChild = childAnchors.reduce((max, child) => (child.x > max.x ? child : max), childAnchors[0]);
+              const splitY = Math.min(...childAnchors.map((child) => child.y)) - 62;
+              const verticalStartY = parentBottomY;
+              const verticalEndY = splitY;
+
+              return (
+                <g key={`connector-${parentId}`}>
+                  <path d={`M ${parentCenterX} ${verticalStartY} V ${verticalEndY}`} fill="none" stroke="#D5DAE1" strokeWidth="1.4" />
+                  <path d={`M ${firstChild.x} ${splitY} H ${lastChild.x}`} fill="none" stroke="#D5DAE1" strokeWidth="1.4" />
+                  {childAnchors.map((child) => (
+                    <path key={`${parentId}-${child.id}`} d={`M ${child.x} ${splitY} V ${child.y}`} fill="none" stroke="#D5DAE1" strokeWidth="1.4" />
+                  ))}
+                </g>
+              );
             })}
           </svg>
           {nodes.map((node) => {
-            const pos = positions[node.id] || { x: 420, y: 120 };
+            const pos = positions[node.id] || { x: 560, y: 120 };
             const level = levels.find((l) => l.id === node.levelId);
             return (
               <div key={node.id} className="absolute" style={{ left: pos.x, top: pos.y }} onPointerDown={(event) => onNodePointerDown(node.id, event)}>
@@ -392,11 +423,18 @@ function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId
 function EmptyOrganizationState({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="flex min-h-[700px] items-center justify-center">
-      <div className="w-[420px] rounded-2xl border border-dashed border-border-strong bg-white p-8 text-center shadow-[0_18px_50px_rgba(17,24,39,0.05)]">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EEF3FF] text-primary"><Plus size={24} /></div>
-        <h2 className="mt-5 text-base font-semibold text-text-primary">Create your first organization node</h2>
-        <p className="mt-2 text-sm leading-6 text-text-secondary">Start with your root node, such as Head Office. After that, use the plus controls to add child nodes or place sibling nodes to the left and right.</p>
-        <button onClick={onCreate} type="button" className="focus-ring mt-6 inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover">Create First Node <Plus size={16} /></button>
+      <div className="flex w-[360px] flex-col items-center text-center">
+        <div className="relative mb-6 h-[118px] w-[150px]">
+          <div className="absolute left-7 top-3 h-20 w-24 rounded-full bg-[#E8EBF0]" />
+          <div className="absolute left-3 top-10 h-12 w-24 rounded-full bg-white shadow-[0_14px_30px_rgba(17,24,39,0.08)]" />
+          <div className="absolute right-2 top-10 h-12 w-24 rounded-full bg-white shadow-[0_14px_30px_rgba(17,24,39,0.08)]" />
+          <div className="absolute left-1/2 top-[62px] flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-white shadow-[0_12px_30px_rgba(49,87,246,0.28)]">
+            <Search size={26} />
+          </div>
+        </div>
+        <h2 className="text-lg font-semibold text-text-primary">No Node Level</h2>
+        <p className="mt-2 max-w-[260px] text-sm leading-5 text-text-secondary">You have not added any node level to your organization structure yet.</p>
+        <button onClick={onCreate} type="button" className="focus-ring mt-6 inline-flex h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-white shadow-[0_10px_24px_rgba(49,87,246,0.22)] hover:bg-primary-hover">Add Node Level</button>
       </div>
     </div>
   );
@@ -405,15 +443,21 @@ function EmptyOrganizationState({ onCreate }: { onCreate: () => void }) {
 function DraggableNodeCard({ node, level, selected, dragging, onSelect, onAddChild, onAddLeft, onAddRight }: { node: OrgNode; level?: OrgLevel; selected: boolean; dragging: boolean; onSelect: () => void; onAddChild: () => void; onAddLeft: () => void; onAddRight: () => void }) {
   return (
     <div className="group relative select-none">
-      <button type="button" onClick={onSelect} className={["w-[270px] rounded-lg border bg-white px-6 py-4 text-center shadow-[0_8px_24px_rgba(17,24,39,0.04)] transition-all", selected ? "border-primary bg-[#EEF3FF]" : "border-border hover:border-primary/50", dragging ? "scale-[1.015] cursor-grabbing shadow-[0_18px_46px_rgba(17,24,39,0.12)]" : "cursor-grab"].join(" ")}>
-        <span className="absolute left-3 top-3 text-text-muted"><Move size={14} /></span>
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-primary">{level?.title}</p>
-        <p className="text-sm font-semibold text-text-primary">{node.name}</p>
-        <p className="mt-1 truncate text-xs text-text-secondary">{node.description}</p>
+      <button type="button" onClick={onSelect} className={[
+        "relative h-[70px] w-[270px] rounded-lg border bg-white px-6 text-center shadow-[0_8px_24px_rgba(17,24,39,0.04)] transition-all",
+        selected ? "border-primary bg-[#EEF3FF] shadow-[0_12px_32px_rgba(49,87,246,0.12)]" : "border-border hover:border-primary/50",
+        dragging ? "scale-[1.015] cursor-grabbing shadow-[0_18px_46px_rgba(17,24,39,0.12)]" : "cursor-grab",
+      ].join(" ")}>
+        <span className="absolute left-3 top-3 text-text-muted opacity-0 transition-opacity group-hover:opacity-100"><Move size={14} /></span>
+        <span className="absolute right-3 top-3 rounded-full bg-[#EEF3FF] px-2 py-0.5 text-[10px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">{level?.title || "Node"}</span>
+        <span className="flex h-full flex-col items-center justify-center">
+          <span className="text-sm font-semibold text-text-primary">{node.name}</span>
+          <span className="mt-1 max-w-[210px] truncate text-xs text-text-secondary">{node.description}</span>
+        </span>
       </button>
-      <button onClick={onAddLeft} type="button" className="absolute -left-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
-      <button onClick={onAddRight} type="button" className="absolute -right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
-      <button onClick={onAddChild} type="button" className="absolute -bottom-9 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button onClick={onAddLeft} type="button" aria-label="Add node to left" className="absolute -left-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button onClick={onAddRight} type="button" aria-label="Add node to right" className="absolute -right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button onClick={onAddChild} type="button" aria-label="Add child node" className="absolute -bottom-9 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
     </div>
   );
 }
