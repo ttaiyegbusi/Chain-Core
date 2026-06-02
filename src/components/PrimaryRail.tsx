@@ -27,7 +27,13 @@ const ICONS: RailIcon[] = [
   { key: "home", label: "Home", icon: Home, href: "/" },
   { key: "layers", label: "Products", icon: Layers },
   { key: "info", label: "Information", icon: Info },
-  { key: "contacts", label: "Customers", icon: Contact },
+  {
+    key: "contacts",
+    label: "Customers",
+    icon: Contact,
+    href: "/clients/individual",
+    match: (p) => p.startsWith("/clients"),
+  },
   { key: "wallet", label: "Wallets", icon: Wallet },
   { key: "reports", label: "Reports", icon: Newspaper },
   {

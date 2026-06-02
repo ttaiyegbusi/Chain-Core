@@ -1108,6 +1108,53 @@ export function getScreenContext(pathname: string): ScreenContext {
       suggestedPrompts: ["Summarize income and expenses", "Show top expense categories", "Compare income and expenses", "What is the net position?"],
     };
   }
+
+  // ---------------------------------------------------------- CLIENTS
+  if (pathname.match(/\/clients\/individual\/[^/]+/)) {
+    return {
+      route: pathname,
+      pageTitle: "Individual Client Detail",
+      module: "Clients",
+      visibleSummary: "This page shows an individual client's full profile: identity, contact information (first address, email and phone), meeting day and time, branch assignment, credit officer, and notes. Tabs let you switch between Client Overview, Loan Account, Pending, and Failed.",
+      suggestedPrompts: ["Summarize this client", "Show this client's loan account", "What's pending for this client?", "Open the client's branch"],
+    };
+  }
+  if (pathname.includes("/clients/individual")) {
+    return {
+      route: pathname,
+      pageTitle: "Individual Clients",
+      module: "Clients",
+      visibleSummary: "This page lists all individual clients with their name, email, gender, date of birth, phone number, client ID, and status (Active / Inactive / Suspended). The overview row shows four transaction-value cards and supports filtering by status, search, and date range.",
+      suggestedPrompts: ["How many individual clients are there?", "Show active clients only", "Summarize this page", "Open Aiyegbusi Temitope"],
+    };
+  }
+  if (pathname.includes("/clients/corporate")) {
+    return {
+      route: pathname,
+      pageTitle: "Corporate Clients",
+      module: "Clients",
+      visibleSummary: "This page lists all corporate clients (registered companies) with their name, phone, client ID, and status. The same overview cards and filtering are available as for individual clients.",
+      suggestedPrompts: ["How many corporate clients?", "Show active corporates", "Summarize this page"],
+    };
+  }
+  if (pathname.includes("/clients/center")) {
+    return {
+      route: pathname,
+      pageTitle: "Centers",
+      module: "Clients",
+      visibleSummary: "This page lists all client centers — groups of clients that meet together (cooperatives, associations, community groups) — with their name, phone, client ID and status. Centers usually have shared meeting days and a branch assignment.",
+      suggestedPrompts: ["How many centers are active?", "Open Chain Consults", "Summarize this page"],
+    };
+  }
+  if (pathname.includes("/clients/persons")) {
+    return {
+      route: pathname,
+      pageTitle: "Persons",
+      module: "Clients",
+      visibleSummary: "This page lists Persons — individual people on file (same shape as Individual Clients, separate listing for grouping). Each row shows name, email, gender, date of birth, phone, client ID and status.",
+      suggestedPrompts: ["Summarize this page", "Show active persons only", "Open Aiyegbusi Temitope"],
+    };
+  }
   return {
     route: pathname,
     pageTitle: "ChainCore Workspace",

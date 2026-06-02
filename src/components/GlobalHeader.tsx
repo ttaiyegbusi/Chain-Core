@@ -8,10 +8,10 @@ import { useSearch } from "./Search/SearchProvider";
 
 export default function GlobalHeader({
   title,
-  crumbs,
+  crumbs = [],
 }: {
   title: string;
-  crumbs: Crumb[];
+  crumbs?: Crumb[];
 }) {
   const { open } = useCoreAI();
   const { open: openNotifications } = useNotifications();
