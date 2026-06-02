@@ -215,7 +215,7 @@ export default function OrganizationPage() {
 
   const onNodePointerDown = (nodeId: string, event: React.PointerEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
-    if (target.closest("button")) return;
+    if (target.closest("[data-node-action]")) return;
     const pos = positions[nodeId] || { x: 420, y: 120 };
     setDraggingId(nodeId);
     setDragStart({ pointerX: event.clientX, pointerY: event.clientY, startX: pos.x, startY: pos.y });
@@ -269,7 +269,7 @@ export default function OrganizationPage() {
                     selectedNodeId={selectedNodeId}
                     setSelectedNodeId={(id) => {
                       setSelectedNodeId(id);
-                      if (activeTab === "diagram") setDetailsOpen(true);
+                      setDetailsOpen(true);
                     }}
                     openCreateNode={openCreateNode}
                     onNodePointerDown={onNodePointerDown}
@@ -280,7 +280,7 @@ export default function OrganizationPage() {
                 )}
               </div>
             </div>
-            {activeTab === "diagram" && detailsOpen && selectedNode && (
+            {activeTab !== "levels" && detailsOpen && selectedNode && (
               <NodeDetailsPanel node={selectedNode} level={levels.find((l) => l.id === selectedNode.levelId)} onClose={() => setDetailsOpen(false)} onEdit={openEditNode} onDelete={deleteNode} hasChildren={nodes.some((node) => node.parentId === selectedNodeId)} />
             )}
           </div>
@@ -443,21 +443,21 @@ function EmptyOrganizationState({ onCreate }: { onCreate: () => void }) {
 function DraggableNodeCard({ node, level, selected, dragging, onSelect, onAddChild, onAddLeft, onAddRight }: { node: OrgNode; level?: OrgLevel; selected: boolean; dragging: boolean; onSelect: () => void; onAddChild: () => void; onAddLeft: () => void; onAddRight: () => void }) {
   return (
     <div className="group relative select-none">
-      <button type="button" onClick={onSelect} className={[
-        "relative h-[70px] w-[270px] rounded-lg border bg-white px-6 text-center shadow-[0_8px_24px_rgba(17,24,39,0.04)] transition-all",
+      <div role="button" tabIndex={0} onClick={onSelect} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(); }} className={[
+        "relative flex h-[70px] w-[270px] items-center justify-center rounded-lg border bg-white px-6 text-center shadow-[0_8px_24px_rgba(17,24,39,0.04)] transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
         selected ? "border-primary bg-[#EEF3FF] shadow-[0_12px_32px_rgba(49,87,246,0.12)]" : "border-border hover:border-primary/50",
         dragging ? "scale-[1.015] cursor-grabbing shadow-[0_18px_46px_rgba(17,24,39,0.12)]" : "cursor-grab",
       ].join(" ")}>
         <span className="absolute left-3 top-3 text-text-muted opacity-0 transition-opacity group-hover:opacity-100"><Move size={14} /></span>
         <span className="absolute right-3 top-3 rounded-full bg-[#EEF3FF] px-2 py-0.5 text-[10px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">{level?.title || "Node"}</span>
-        <span className="flex h-full flex-col items-center justify-center">
+        <span className="flex flex-col items-center justify-center">
           <span className="text-sm font-semibold text-text-primary">{node.name}</span>
           <span className="mt-1 max-w-[210px] truncate text-xs text-text-secondary">{node.description}</span>
         </span>
-      </button>
-      <button onClick={onAddLeft} type="button" aria-label="Add node to left" className="absolute -left-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
-      <button onClick={onAddRight} type="button" aria-label="Add node to right" className="absolute -right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
-      <button onClick={onAddChild} type="button" aria-label="Add child node" className="absolute -bottom-9 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      </div>
+      <button data-node-action onClick={onAddLeft} type="button" aria-label="Add node to left" className="absolute -left-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button data-node-action onClick={onAddRight} type="button" aria-label="Add node to right" className="absolute -right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button data-node-action onClick={onAddChild} type="button" aria-label="Add child node" className="absolute -bottom-9 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
     </div>
   );
 }
