@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, useEffect } from "react";
+import Link from "next/link";
 import {
   Search,
   SlidersHorizontal,
@@ -16,7 +17,6 @@ import ClientsSidebar from "@/components/ClientsSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import ClientsTable, { StatusTabs } from "@/components/ClientsTable";
 import ClientsOverviewStats from "@/components/ClientsOverviewStats";
-import CreateClientWizard from "@/components/CreateClientWizard";
 import { PaginationBar } from "@/components/Pagination";
 import {
   Client,
@@ -40,10 +40,10 @@ interface Props {
 }
 
 const CREATE_OPTIONS = [
-  { label: "Individual Client", icon: UserCircle2, kind: "Individual" as const },
-  { label: "Corporate Client", icon: Building2, kind: "Corporate" as const },
-  { label: "Center", icon: HomeIcon, kind: "Center" as const },
-  { label: "Persons", icon: Users, kind: "Individual" as const },
+  { label: "Individual Client", icon: UserCircle2, href: "/clients/individual" },
+  { label: "Corporate Client", icon: Building2, href: "/clients/corporate" },
+  { label: "Center", icon: HomeIcon, href: "/clients/center" },
+  { label: "Persons", icon: Users, href: "/clients/persons" },
 ];
 
 export default function ClientsListPage({
@@ -58,7 +58,6 @@ export default function ClientsListPage({
   const [tab, setTab] = useState<"All" | ClientStatus>("All");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(8);
-  const [wizardKind, setWizardKind] = useState<"Individual" | "Corporate" | "Center" | null>(null);
 
   // Create-dropdown state.
   const [createOpen, setCreateOpen] = useState(false);
@@ -187,19 +186,16 @@ export default function ClientsListPage({
                     {CREATE_OPTIONS.map((opt) => {
                       const Icon = opt.icon;
                       return (
-                        <button
+                        <Link
                           key={opt.label}
-                          type="button"
-                          onClick={() => {
-                            setCreateOpen(false);
-                            setWizardKind(opt.kind);
-                          }}
-                          className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-text-primary transition-colors hover:bg-surface-muted"
+                          href={opt.href}
+                          onClick={() => setCreateOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-muted"
                           role="menuitem"
                         >
                           <Icon size={16} className="text-text-secondary" aria-hidden />
                           {opt.label}
-                        </button>
+                        </Link>
                       );
                     })}
                   </div>
@@ -226,14 +222,6 @@ export default function ClientsListPage({
           />
         </section>
       </main>
-
-      {wizardKind && (
-        <CreateClientWizard
-          open={!!wizardKind}
-          kind={wizardKind}
-          onClose={() => setWizardKind(null)}
-        />
-      )}
     </div>
   );
 }
