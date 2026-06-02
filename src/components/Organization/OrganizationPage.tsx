@@ -24,6 +24,10 @@ import { ORG_LEVELS, OrgLevel, OrgNode } from "@/data/organization";
 const countryOptions = ["Nigeria", "Ghana", "Kenya", "South Africa"];
 const stateOptions = ["Lagos", "Ogun", "Oyo", "Rivers", "Abuja"];
 const managerOptions = ["Temitope Aiyegbusi", "Helen Paul", "Aiyegbusi Temitope", "Operations Admin"];
+const NODE_WIDTH = 270;
+const NODE_HEIGHT = 70;
+const GRID_SIZE = 24;
+const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
 type ActiveTab = "schema" | "diagram" | "levels";
 type Placement = "root" | "child" | "left" | "right";
@@ -226,9 +230,11 @@ export default function OrganizationPage() {
     if (!draggingId || !dragStart) return;
     const dx = event.clientX - dragStart.pointerX;
     const dy = event.clientY - dragStart.pointerY;
+    const nextX = Math.max(40, snapToGrid(dragStart.startX + dx));
+    const nextY = Math.max(40, snapToGrid(dragStart.startY + dy));
     setPositions((prev) => ({
       ...prev,
-      [draggingId]: { x: Math.max(40, dragStart.startX + dx), y: Math.max(40, dragStart.startY + dy) },
+      [draggingId]: { x: nextX, y: nextY },
     }));
   };
 
@@ -372,25 +378,24 @@ function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId
                 const parentPosition = positions[child.parentId] || { x: 560, y: 120 };
                 const childPosition = positions[child.id] || { x: parentPosition.x, y: parentPosition.y + 180 };
 
-                const parentCenterX = parentPosition.x + 135;
-                const parentBottomY = parentPosition.y + 70;
-                const childCenterX = childPosition.x + 135;
+                const parentCenterX = parentPosition.x + NODE_WIDTH / 2;
+                const parentBottomY = parentPosition.y + NODE_HEIGHT;
+                const childCenterX = childPosition.x + NODE_WIDTH / 2;
                 const childTopY = childPosition.y;
-
-                const distanceY = Math.max(80, Math.abs(childTopY - parentBottomY));
-                const controlOffset = Math.min(140, distanceY * 0.55);
-                const controlY1 = parentBottomY + controlOffset;
-                const controlY2 = childTopY - controlOffset;
+                const gap = Math.max(48, childTopY - parentBottomY);
+                const elbowY = parentBottomY + gap / 2;
+                const path = `M ${parentCenterX} ${parentBottomY} V ${elbowY} H ${childCenterX} V ${childTopY}`;
 
                 return (
                   <path
                     key={`edge-${child.parentId}-${child.id}`}
-                    d={`M ${parentCenterX} ${parentBottomY} C ${parentCenterX} ${controlY1}, ${childCenterX} ${controlY2}, ${childCenterX} ${childTopY}`}
+                    d={path}
                     fill="none"
                     stroke="#D5DAE1"
-                    strokeWidth="1.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                    strokeWidth="1.6"
+                    strokeLinecap="square"
+                    strokeLinejoin="miter"
+                    vectorEffect="non-scaling-stroke"
                   />
                 );
               })}
