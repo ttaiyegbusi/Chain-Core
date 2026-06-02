@@ -1,0 +1,44 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChevronDown, GitFork, Info, Network } from "lucide-react";
+
+const MENU = [
+  { label: "Organization Structure", icon: GitFork, href: "/organization/structure" },
+  { label: "Organization Info", icon: Info, href: "/organization/info" },
+];
+
+export default function OrganizationSidebar() {
+  const pathname = usePathname() || "";
+  return (
+    <aside className="fixed left-[66px] top-0 z-20 flex h-screen w-[250px] min-w-[250px] flex-col border-r border-border bg-white">
+      <div className="px-4 pt-5">
+        <button type="button" className="focus-ring flex w-full items-center justify-between rounded-md bg-surface-muted px-3 py-2.5">
+          <span className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border-strong text-text-secondary">
+              <Network size={14} strokeWidth={2} />
+            </span>
+            <span className="text-sm font-medium text-text-primary">Organization Mgt</span>
+          </span>
+          <ChevronDown size={16} className="text-text-secondary" />
+        </button>
+      </div>
+      <div className="px-5 pb-2 pt-5 text-[11px] font-semibold tracking-wider text-text-subtle">SUB MENU</div>
+      <nav className="flex flex-col gap-0.5 px-3">
+        {MENU.map((item) => {
+          const Icon = item.icon;
+          const active = pathname.startsWith(item.href);
+          return (
+            <Link key={item.label} href={item.href} className="focus-ring rounded-md" aria-current={active ? "page" : undefined}>
+              <span className={["flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors", active ? "bg-surface-muted text-text-primary" : "text-text-secondary hover:bg-surface-muted"].join(" ")}>
+                <Icon size={18} strokeWidth={1.9} />
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+    </aside>
+  );
+}

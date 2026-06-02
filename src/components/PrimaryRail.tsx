@@ -9,6 +9,7 @@ import {
   Newspaper,
   Euro,
   PanelsTopLeft,
+  Network,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -25,6 +26,13 @@ interface RailIcon {
 
 const ICONS: RailIcon[] = [
   { key: "home", label: "Home", icon: Home, href: "/" },
+  {
+    key: "organization",
+    label: "Organization",
+    icon: Network,
+    href: "/organization/structure",
+    match: (p) => p.startsWith("/organization"),
+  },
   { key: "layers", label: "Products", icon: Layers },
   { key: "info", label: "Information", icon: Info },
   {

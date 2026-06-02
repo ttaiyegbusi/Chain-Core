@@ -255,3 +255,9 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .coreai-row-flash { animation: none !important; }
 }
+
+.organization-grid {
+  background-color: #f8fafc;
+  background-image: radial-gradient(#dbe3ef 1px, transparent 1px);
+  background-size: 36px 36px;
+}
