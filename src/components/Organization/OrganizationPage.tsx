@@ -5,7 +5,6 @@ import {
   ChevronDown,
   ChevronsUpDown,
   Edit,
-  Eye,
   Maximize2,
   MinusCircle,
   Move,
@@ -20,13 +19,15 @@ import {
 import PrimaryRail from "@/components/PrimaryRail";
 import OrganizationSidebar from "./OrganizationSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
-import { ORG_LEVELS, ORG_NODES, OrgLevel, OrgNode } from "@/data/organization";
+import { ORG_LEVELS, OrgLevel, OrgNode } from "@/data/organization";
 
 const countryOptions = ["Nigeria", "Ghana", "Kenya", "South Africa"];
 const stateOptions = ["Lagos", "Ogun", "Oyo", "Rivers", "Abuja"];
 const managerOptions = ["Temitope Aiyegbusi", "Helen Paul", "Aiyegbusi Temitope", "Operations Admin"];
 
 type ActiveTab = "schema" | "diagram" | "levels";
+type Placement = "root" | "child" | "left" | "right";
+type NodePosition = { x: number; y: number };
 
 type NodeDraft = {
   name: string;
@@ -57,17 +58,22 @@ const emptyDraft: NodeDraft = {
 export default function OrganizationPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("schema");
   const [levels, setLevels] = useState<OrgLevel[]>(ORG_LEVELS);
-  const [nodes, setNodes] = useState<OrgNode[]>(ORG_NODES);
-  const [selectedNodeId, setSelectedNodeId] = useState<string>(ORG_NODES[1]?.id || ORG_NODES[0]?.id || "");
+  const [nodes, setNodes] = useState<OrgNode[]>([]);
+  const [positions, setPositions] = useState<Record<string, NodePosition>>({});
+  const [selectedNodeId, setSelectedNodeId] = useState<string>("");
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [addNodeOpen, setAddNodeOpen] = useState(false);
   const [editNodeOpen, setEditNodeOpen] = useState(false);
   const [nodeParentId, setNodeParentId] = useState<string | undefined>(undefined);
+  const [nodePlacement, setNodePlacement] = useState<Placement>("root");
   const [nodeDraft, setNodeDraft] = useState<NodeDraft>(emptyDraft);
   const [newLevelTitle, setNewLevelTitle] = useState("");
   const [search, setSearch] = useState("");
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragStart, setDragStart] = useState<{ pointerX: number; pointerY: number; startX: number; startY: number } | null>(null);
 
-  const selectedNode = nodes.find((node) => node.id === selectedNodeId) || nodes[0];
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId);
+
   const filteredNodes = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return nodes;
@@ -78,12 +84,19 @@ export default function OrganizationPage() {
     );
   }, [nodes, search]);
 
-  const openCreateNode = (parentId?: string) => {
+  const openCreateNode = (parentId?: string, placement: Placement = parentId ? "child" : "root") => {
     const parent = parentId ? nodes.find((n) => n.id === parentId) : undefined;
     const parentLevel = parent ? levels.find((level) => level.id === parent.levelId) : undefined;
-    const nextLevel = parentLevel ? levels.find((level) => level.order === parentLevel.order + 1) : levels[0];
+    const suggestedLevel =
+      placement === "left" || placement === "right"
+        ? parentLevel
+        : parentLevel
+          ? levels.find((level) => level.order === parentLevel.order + 1) || parentLevel
+          : levels[0];
+
     setNodeParentId(parentId);
-    setNodeDraft({ ...emptyDraft, levelId: nextLevel?.id || levels[0]?.id || "level-1" });
+    setNodePlacement(placement);
+    setNodeDraft({ ...emptyDraft, levelId: suggestedLevel?.id || levels[0]?.id || "level-1" });
     setAddNodeOpen(true);
   };
 
@@ -104,12 +117,21 @@ export default function OrganizationPage() {
     setEditNodeOpen(true);
   };
 
+  const getDefaultPosition = (parentId?: string, placement: Placement = "root") => {
+    if (!parentId) return { x: 420, y: 120 };
+    const parentPosition = positions[parentId] || { x: 420, y: 120 };
+    if (placement === "left") return { x: parentPosition.x - 340, y: parentPosition.y };
+    if (placement === "right") return { x: parentPosition.x + 340, y: parentPosition.y };
+    return { x: parentPosition.x, y: parentPosition.y + 170 };
+  };
+
   const createNode = () => {
     const id = `node-${Date.now()}`;
     const level = levels.find((l) => l.id === nodeDraft.levelId);
+    const siblingParentId = nodePlacement === "left" || nodePlacement === "right" ? nodes.find((n) => n.id === nodeParentId)?.parentId : nodeParentId;
     const created: OrgNode = {
       id,
-      parentId: nodeParentId,
+      parentId: siblingParentId,
       levelId: nodeDraft.levelId,
       name: nodeDraft.name || "Untitled Node",
       title: level?.title || "Node",
@@ -125,8 +147,9 @@ export default function OrganizationPage() {
       stats: { clients: 0, staff: 0, centers: 0, activeLoans: 0, portfolio: "₦0" },
     };
     setNodes((prev) => [...prev, created]);
+    setPositions((prev) => ({ ...prev, [id]: getDefaultPosition(nodeParentId, nodePlacement) }));
     setSelectedNodeId(id);
-    setDetailsOpen(true);
+    setDetailsOpen(activeTab === "diagram");
     setAddNodeOpen(false);
   };
 
@@ -147,10 +170,16 @@ export default function OrganizationPage() {
   };
 
   const deleteNode = () => {
+    if (!selectedNodeId) return;
     const hasChildren = nodes.some((node) => node.parentId === selectedNodeId);
     if (hasChildren) return;
     setNodes((prev) => prev.filter((node) => node.id !== selectedNodeId));
-    setSelectedNodeId(nodes[0]?.id || "");
+    setPositions((prev) => {
+      const next = { ...prev };
+      delete next[selectedNodeId];
+      return next;
+    });
+    setSelectedNodeId("");
     setDetailsOpen(false);
   };
 
@@ -168,23 +197,38 @@ export default function OrganizationPage() {
     setNewLevelTitle("");
   };
 
+  const updateLevelTitle = (id: string, title: string) => {
+    setLevels((prev) => prev.map((level) => (level.id === id ? { ...level, title } : level)));
+  };
+
   const removeLevel = (id: string) => {
     if (nodes.some((node) => node.levelId === id)) return;
     setLevels((prev) => prev.filter((level) => level.id !== id).map((level, i) => ({ ...level, order: i + 1 })));
   };
 
-  const childMap = useMemo(() => {
-    const map = new Map<string | undefined, OrgNode[]>();
-    filteredNodes.forEach((node) => {
-      const key = node.parentId;
-      const list = map.get(key) || [];
-      list.push(node);
-      map.set(key, list);
-    });
-    return map;
-  }, [filteredNodes]);
+  const onNodePointerDown = (nodeId: string, event: React.PointerEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    if (target.closest("button")) return;
+    const pos = positions[nodeId] || { x: 420, y: 120 };
+    setDraggingId(nodeId);
+    setDragStart({ pointerX: event.clientX, pointerY: event.clientY, startX: pos.x, startY: pos.y });
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
 
-  const topNodes = childMap.get(undefined) || filteredNodes.filter((node) => !node.parentId);
+  const onCanvasPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!draggingId || !dragStart) return;
+    const dx = event.clientX - dragStart.pointerX;
+    const dy = event.clientY - dragStart.pointerY;
+    setPositions((prev) => ({
+      ...prev,
+      [draggingId]: { x: Math.max(40, dragStart.startX + dx), y: Math.max(40, dragStart.startY + dy) },
+    }));
+  };
+
+  const onCanvasPointerUp = () => {
+    setDraggingId(null);
+    setDragStart(null);
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -207,21 +251,24 @@ export default function OrganizationPage() {
           <div className="flex gap-5">
             <div className="min-w-0 flex-1">
               <div className="rounded-none border border-border bg-white">
-                <Toolbar search={search} setSearch={setSearch} onAdd={() => openCreateNode()} />
+                <Toolbar search={search} setSearch={setSearch} onAdd={() => openCreateNode()} nodesExist={nodes.length > 0} />
                 {activeTab === "levels" ? (
-                  <LevelsCanvas levels={levels} setLevels={setLevels} newLevelTitle={newLevelTitle} setNewLevelTitle={setNewLevelTitle} addLevel={addLevel} removeLevel={removeLevel} />
+                  <LevelsCanvas levels={levels} updateLevelTitle={updateLevelTitle} newLevelTitle={newLevelTitle} setNewLevelTitle={setNewLevelTitle} addLevel={addLevel} removeLevel={removeLevel} />
                 ) : (
                   <OrgCanvas
-                    topNodes={topNodes}
-                    childMap={childMap}
+                    nodes={filteredNodes}
                     levels={levels}
+                    positions={positions}
                     selectedNodeId={selectedNodeId}
                     setSelectedNodeId={(id) => {
                       setSelectedNodeId(id);
                       if (activeTab === "diagram") setDetailsOpen(true);
                     }}
                     openCreateNode={openCreateNode}
-                    compact={activeTab === "schema"}
+                    onNodePointerDown={onNodePointerDown}
+                    onCanvasPointerMove={onCanvasPointerMove}
+                    onCanvasPointerUp={onCanvasPointerUp}
+                    draggingId={draggingId}
                   />
                 )}
               </div>
@@ -234,7 +281,7 @@ export default function OrganizationPage() {
       </main>
 
       {addNodeOpen && (
-        <NodeSheet title="Create New Node" action="Create Node" draft={nodeDraft} setDraft={setNodeDraft} levels={levels} onClose={() => setAddNodeOpen(false)} onSubmit={createNode} />
+        <NodeSheet title={nodePlacement === "root" ? "Create First Node" : "Create New Node"} action="Create Node" draft={nodeDraft} setDraft={setNodeDraft} levels={levels} onClose={() => setAddNodeOpen(false)} onSubmit={createNode} placement={nodePlacement} />
       )}
       {editNodeOpen && (
         <NodeSheet title="Edit Node" action="Save Changes" draft={nodeDraft} setDraft={setNodeDraft} levels={levels} onClose={() => setEditNodeOpen(false)} onSubmit={updateNode} />
@@ -251,7 +298,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
   );
 }
 
-function Toolbar({ search, setSearch, onAdd }: { search: string; setSearch: (v: string) => void; onAdd: () => void }) {
+function Toolbar({ search, setSearch, onAdd, nodesExist }: { search: string; setSearch: (v: string) => void; onAdd: () => void; nodesExist: boolean }) {
   return (
     <div className="flex h-[62px] items-center justify-between border-b border-border px-4">
       <div className="relative">
@@ -261,19 +308,19 @@ function Toolbar({ search, setSearch, onAdd }: { search: string; setSearch: (v: 
       <div className="flex items-center gap-2">
         <button className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-4 text-sm text-text-primary hover:bg-surface-muted" type="button"><SlidersHorizontal size={16} />Filter</button>
         <button className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-4 text-sm text-text-primary hover:bg-surface-muted" type="button">Export <Upload size={16} /></button>
-        <button onClick={onAdd} className="focus-ring inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover" type="button">Add Node Levels <Plus size={16} /></button>
+        <button onClick={onAdd} className="focus-ring inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover" type="button">{nodesExist ? "Create Node" : "Create First Node"} <Plus size={16} /></button>
       </div>
     </div>
   );
 }
 
-function LevelsCanvas({ levels, setLevels, newLevelTitle, setNewLevelTitle, addLevel, removeLevel }: { levels: OrgLevel[]; setLevels: React.Dispatch<React.SetStateAction<OrgLevel[]>>; newLevelTitle: string; setNewLevelTitle: (v: string) => void; addLevel: () => void; removeLevel: (id: string) => void }) {
+function LevelsCanvas({ levels, updateLevelTitle, newLevelTitle, setNewLevelTitle, addLevel, removeLevel }: { levels: OrgLevel[]; updateLevelTitle: (id: string, title: string) => void; newLevelTitle: string; setNewLevelTitle: (v: string) => void; addLevel: () => void; removeLevel: (id: string) => void }) {
   return (
     <div className="organization-grid min-h-[760px] px-10 py-10">
-      <div className="mx-auto max-w-[560px] space-y-4">
+      <div className="mx-auto max-w-[600px] space-y-4">
         <div className="rounded-xl border border-border bg-white p-5 shadow-[0_8px_24px_rgba(17,24,39,0.04)]">
           <p className="text-sm font-semibold text-text-primary">Define node levels</p>
-          <p className="mt-1 text-xs leading-5 text-text-muted">Set the hierarchy layers before building the organization tree. These levels drive reporting, permissions, branch assignment and client ownership.</p>
+          <p className="mt-1 text-xs leading-5 text-text-muted">Create every operating layer before building the organization. Example: Head Office, Region, Branch, Center. You can add more levels any time.</p>
           <div className="mt-4 flex gap-2">
             <input value={newLevelTitle} onChange={(e) => setNewLevelTitle(e.target.value)} placeholder="Enter Title" className="focus-ring h-10 flex-1 rounded-md border border-border-strong px-3 text-sm" />
             <button onClick={addLevel} type="button" className="focus-ring rounded-md bg-primary px-4 text-sm font-medium text-white">Add Level</button>
@@ -281,11 +328,11 @@ function LevelsCanvas({ levels, setLevels, newLevelTitle, setNewLevelTitle, addL
         </div>
         {levels.map((level, index) => (
           <div key={level.id} className="relative flex items-center justify-between rounded-lg border border-border bg-white p-4 shadow-[0_8px_24px_rgba(17,24,39,0.04)]">
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">{level.order}</span>
-              <div>
-                <p className="text-sm font-semibold text-text-primary">{level.title || "Enter Title"}</p>
-                <p className="text-xs text-text-muted">Level {level.order}</p>
+            <div className="flex flex-1 items-center gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">{level.order}</span>
+              <div className="flex-1">
+                <input value={level.title} onChange={(e) => updateLevelTitle(level.id, e.target.value)} className="focus-ring h-9 w-full rounded-md border border-transparent px-2 text-sm font-semibold text-text-primary hover:border-border-strong focus:border-primary" />
+                <p className="px-2 text-xs text-text-muted">Level {level.order}</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -300,18 +347,40 @@ function LevelsCanvas({ levels, setLevels, newLevelTitle, setNewLevelTitle, addL
   );
 }
 
-function OrgCanvas({ topNodes, childMap, levels, selectedNodeId, setSelectedNodeId, openCreateNode, compact }: { topNodes: OrgNode[]; childMap: Map<string | undefined, OrgNode[]>; levels: OrgLevel[]; selectedNodeId: string; setSelectedNodeId: (id: string) => void; openCreateNode: (id?: string) => void; compact: boolean }) {
+function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId, openCreateNode, onNodePointerDown, onCanvasPointerMove, onCanvasPointerUp, draggingId }: { nodes: OrgNode[]; levels: OrgLevel[]; positions: Record<string, NodePosition>; selectedNodeId: string; setSelectedNodeId: (id: string) => void; openCreateNode: (id?: string, placement?: Placement) => void; onNodePointerDown: (id: string, event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerUp: () => void; draggingId: string | null }) {
+  const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes]);
   return (
-    <div className="organization-grid relative min-h-[760px] overflow-auto p-8">
-      <div className={compact ? "mx-auto flex w-full max-w-[620px] flex-col items-center" : "ml-auto flex w-full max-w-[620px] flex-col items-center pr-8"}>
-        {topNodes.length === 0 ? (
-          <button onClick={() => openCreateNode()} className="mt-5 rounded-lg border border-border bg-white px-12 py-5 text-sm text-text-muted">Enter Title <br /><span className="text-xs">Level 1</span></button>
-        ) : (
-          topNodes.map((node) => (
-            <TreeNode key={node.id} node={node} childMap={childMap} levels={levels} selectedNodeId={selectedNodeId} setSelectedNodeId={setSelectedNodeId} openCreateNode={openCreateNode} compact={compact} />
-          ))
-        )}
-      </div>
+    <div className="organization-grid relative min-h-[760px] overflow-auto p-8" onPointerMove={onCanvasPointerMove} onPointerUp={onCanvasPointerUp} onPointerCancel={onCanvasPointerUp}>
+      {nodes.length === 0 ? (
+        <EmptyOrganizationState onCreate={() => openCreateNode(undefined, "root")} />
+      ) : (
+        <div className="relative h-[1120px] min-w-[1280px]">
+          <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
+            {nodes.map((node) => {
+              if (!node.parentId) return null;
+              const parent = nodeById.get(node.parentId);
+              if (!parent) return null;
+              const from = positions[parent.id] || { x: 420, y: 120 };
+              const to = positions[node.id] || { x: 420, y: 290 };
+              const startX = from.x + 135;
+              const startY = from.y + 84;
+              const endX = to.x + 135;
+              const endY = to.y;
+              const midY = startY + (endY - startY) / 2;
+              return <path key={`${parent.id}-${node.id}`} d={`M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`} fill="none" stroke="#DDE3EA" strokeWidth="1.5" />;
+            })}
+          </svg>
+          {nodes.map((node) => {
+            const pos = positions[node.id] || { x: 420, y: 120 };
+            const level = levels.find((l) => l.id === node.levelId);
+            return (
+              <div key={node.id} className="absolute" style={{ left: pos.x, top: pos.y }} onPointerDown={(event) => onNodePointerDown(node.id, event)}>
+                <DraggableNodeCard node={node} level={level} selected={selectedNodeId === node.id} dragging={draggingId === node.id} onSelect={() => setSelectedNodeId(node.id)} onAddChild={() => openCreateNode(node.id, "child")} onAddLeft={() => openCreateNode(node.id, "left")} onAddRight={() => openCreateNode(node.id, "right")} />
+              </div>
+            );
+          })}
+        </div>
+      )}
       <div className="absolute bottom-4 right-4 flex items-center gap-2">
         <button type="button" className="flex h-10 w-10 items-center justify-center rounded-md border border-border-strong bg-white text-text-secondary shadow-sm"><Maximize2 size={17} /></button>
         <div className="flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3 text-sm text-text-primary shadow-sm"><PlusCircle size={16} />100%<MinusCircle size={16} /></div>
@@ -320,26 +389,31 @@ function OrgCanvas({ topNodes, childMap, levels, selectedNodeId, setSelectedNode
   );
 }
 
-function TreeNode({ node, childMap, levels, selectedNodeId, setSelectedNodeId, openCreateNode, compact }: { node: OrgNode; childMap: Map<string | undefined, OrgNode[]>; levels: OrgLevel[]; selectedNodeId: string; setSelectedNodeId: (id: string) => void; openCreateNode: (id?: string) => void; compact: boolean }) {
-  const children = childMap.get(node.id) || [];
-  const level = levels.find((l) => l.id === node.levelId);
+function EmptyOrganizationState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative flex items-center">
-        <button type="button" onClick={() => setSelectedNodeId(node.id)} className={["group w-[270px] rounded-lg border bg-white px-6 py-4 text-center shadow-[0_8px_24px_rgba(17,24,39,0.035)] transition-all", selectedNodeId === node.id ? "border-primary bg-[#EEF3FF]" : "border-border hover:border-primary/50"].join(" ")}>
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-primary">{level?.title}</p>
-          <p className="text-sm font-semibold text-text-primary">{node.name}</p>
-          <p className="mt-1 truncate text-xs text-text-secondary">{node.description}</p>
-        </button>
-        {!compact && (
-          <button onClick={() => openCreateNode(node.id)} type="button" className="absolute -right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary shadow-sm"><Plus size={14} /></button>
-        )}
+    <div className="flex min-h-[700px] items-center justify-center">
+      <div className="w-[420px] rounded-2xl border border-dashed border-border-strong bg-white p-8 text-center shadow-[0_18px_50px_rgba(17,24,39,0.05)]">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EEF3FF] text-primary"><Plus size={24} /></div>
+        <h2 className="mt-5 text-base font-semibold text-text-primary">Create your first organization node</h2>
+        <p className="mt-2 text-sm leading-6 text-text-secondary">Start with your root node, such as Head Office. After that, use the plus controls to add child nodes or place sibling nodes to the left and right.</p>
+        <button onClick={onCreate} type="button" className="focus-ring mt-6 inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover">Create First Node <Plus size={16} /></button>
       </div>
-      <button onClick={() => openCreateNode(node.id)} type="button" className="my-3 flex h-6 w-6 items-center justify-center rounded-full border border-primary bg-white text-primary shadow-sm"><Plus size={14} /></button>
-      {children.length > 0 && <div className="h-8 w-px bg-border-strong" />}
-      {children.map((child) => (
-        <TreeNode key={child.id} node={child} childMap={childMap} levels={levels} selectedNodeId={selectedNodeId} setSelectedNodeId={setSelectedNodeId} openCreateNode={openCreateNode} compact={compact} />
-      ))}
+    </div>
+  );
+}
+
+function DraggableNodeCard({ node, level, selected, dragging, onSelect, onAddChild, onAddLeft, onAddRight }: { node: OrgNode; level?: OrgLevel; selected: boolean; dragging: boolean; onSelect: () => void; onAddChild: () => void; onAddLeft: () => void; onAddRight: () => void }) {
+  return (
+    <div className="group relative select-none">
+      <button type="button" onClick={onSelect} className={["w-[270px] rounded-lg border bg-white px-6 py-4 text-center shadow-[0_8px_24px_rgba(17,24,39,0.04)] transition-all", selected ? "border-primary bg-[#EEF3FF]" : "border-border hover:border-primary/50", dragging ? "scale-[1.015] cursor-grabbing shadow-[0_18px_46px_rgba(17,24,39,0.12)]" : "cursor-grab"].join(" ")}>
+        <span className="absolute left-3 top-3 text-text-muted"><Move size={14} /></span>
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-primary">{level?.title}</p>
+        <p className="text-sm font-semibold text-text-primary">{node.name}</p>
+        <p className="mt-1 truncate text-xs text-text-secondary">{node.description}</p>
+      </button>
+      <button onClick={onAddLeft} type="button" className="absolute -left-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button onClick={onAddRight} type="button" className="absolute -right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button onClick={onAddChild} type="button" className="absolute -bottom-9 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
     </div>
   );
 }
@@ -391,13 +465,16 @@ function Stat({ label, value }: { label: string; value: string }) {
   return <div className="rounded-lg bg-surface-muted px-3 py-2"><p className="text-[11px] text-text-muted">{label}</p><p className="mt-1 text-sm font-semibold text-text-primary">{value}</p></div>;
 }
 
-function NodeSheet({ title, action, draft, setDraft, levels, onClose, onSubmit }: { title: string; action: string; draft: NodeDraft; setDraft: React.Dispatch<React.SetStateAction<NodeDraft>>; levels: OrgLevel[]; onClose: () => void; onSubmit: () => void }) {
+function NodeSheet({ title, action, draft, setDraft, levels, onClose, onSubmit, placement }: { title: string; action: string; draft: NodeDraft; setDraft: React.Dispatch<React.SetStateAction<NodeDraft>>; levels: OrgLevel[]; onClose: () => void; onSubmit: () => void; placement?: Placement }) {
   const update = (key: keyof NodeDraft, value: string) => setDraft((prev) => ({ ...prev, [key]: value }));
   return (
     <div className="fixed inset-0 z-50 bg-black/35">
       <div className="ml-auto flex h-full w-[620px] flex-col bg-white shadow-[0_20px_80px_rgba(17,24,39,0.18)]">
         <div className="flex h-[70px] items-center justify-between border-b border-border px-6">
-          <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+            {placement && placement !== "root" && <p className="mt-1 text-xs text-text-muted">Placement: {placement === "child" ? "Child node below selected node" : `Sibling node on the ${placement}`}</p>}
+          </div>
           <button onClick={onClose} type="button" className="rounded-md p-2 text-text-secondary hover:bg-surface-muted"><X size={18} /></button>
         </div>
         <div className="flex-1 overflow-auto px-6 py-6">
@@ -414,7 +491,7 @@ function NodeSheet({ title, action, draft, setDraft, levels, onClose, onSubmit }
             <SheetSelect label="Manager" value={draft.manager} onChange={(v) => update("manager", v)} options={managerOptions.map((v) => ({ label: v, value: v }))} />
           </div>
           <div className="mt-6 rounded-lg border border-border bg-surface-muted p-4 text-xs leading-5 text-text-secondary">
-            Parent/child validation will later prevent invalid nesting, moving live branches with active clients, and deleting nodes with assigned staff, clients, centers or loan portfolios.
+            You can drag nodes after creation to fine-tune left/right placement on the canvas. Parent-child connections stay intact while the layout position is manually adjusted.
           </div>
         </div>
         <div className="flex gap-3 border-t border-border px-6 py-4">
