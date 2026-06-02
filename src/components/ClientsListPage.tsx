@@ -17,6 +17,7 @@ import ClientsSidebar from "@/components/ClientsSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import ClientsTable, { StatusTabs } from "@/components/ClientsTable";
 import ClientsOverviewStats from "@/components/ClientsOverviewStats";
+import CreateClientModal from "@/components/CreateClientModal";
 import { PaginationBar } from "@/components/Pagination";
 import {
   Client,
@@ -58,6 +59,7 @@ export default function ClientsListPage({
   const [tab, setTab] = useState<"All" | ClientStatus>("All");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(8);
+  const [createClientOpen, setCreateClientOpen] = useState(false);
 
   // Create-dropdown state.
   const [createOpen, setCreateOpen] = useState(false);
@@ -185,6 +187,24 @@ export default function ClientsListPage({
                   >
                     {CREATE_OPTIONS.map((opt) => {
                       const Icon = opt.icon;
+                      const isIndividual = opt.label === "Individual Client";
+                      if (isIndividual) {
+                        return (
+                          <button
+                            key={opt.label}
+                            type="button"
+                            onClick={() => {
+                              setCreateOpen(false);
+                              setCreateClientOpen(true);
+                            }}
+                            className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-text-primary transition-colors hover:bg-surface-muted"
+                            role="menuitem"
+                          >
+                            <Icon size={16} className="text-text-secondary" aria-hidden />
+                            {opt.label}
+                          </button>
+                        );
+                      }
                       return (
                         <Link
                           key={opt.label}
@@ -222,6 +242,7 @@ export default function ClientsListPage({
           />
         </section>
       </main>
+      <CreateClientModal open={createClientOpen} onClose={() => setCreateClientOpen(false)} />
     </div>
   );
 }
