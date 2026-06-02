@@ -356,17 +356,6 @@ function LevelsCanvas({ levels, updateLevelTitle, newLevelTitle, setNewLevelTitl
 
 function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId, openCreateNode, onNodePointerDown, onCanvasPointerMove, onCanvasPointerUp, draggingId }: { nodes: OrgNode[]; levels: OrgLevel[]; positions: Record<string, NodePosition>; selectedNodeId: string; setSelectedNodeId: (id: string) => void; openCreateNode: (id?: string, placement?: Placement) => void; onNodePointerDown: (id: string, event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerUp: () => void; draggingId: string | null }) {
   const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes]);
-  const childrenByParent = useMemo(() => {
-    const map = new Map<string, OrgNode[]>();
-    nodes.forEach((node) => {
-      if (!node.parentId) return;
-      const siblings = map.get(node.parentId) || [];
-      siblings.push(node);
-      map.set(node.parentId, siblings);
-    });
-    return map;
-  }, [nodes]);
-
   return (
     <div className="organization-grid relative min-h-[760px] overflow-auto p-8" onPointerMove={onCanvasPointerMove} onPointerUp={onCanvasPointerUp} onPointerCancel={onCanvasPointerUp}>
       {nodes.length === 0 ? (
@@ -374,32 +363,37 @@ function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId
       ) : (
         <div className="relative h-[1120px] min-w-[1400px]">
           <svg className="pointer-events-none absolute inset-0 h-full w-full overflow-visible">
-            {Array.from(childrenByParent.entries()).map(([parentId, children]) => {
-              const parent = nodeById.get(parentId);
-              if (!parent || children.length === 0) return null;
-              const parentPosition = positions[parentId] || { x: 560, y: 120 };
-              const parentCenterX = parentPosition.x + 135;
-              const parentBottomY = parentPosition.y + 70;
-              const childAnchors = children.map((child) => {
-                const childPosition = positions[child.id] || { x: parentPosition.x, y: parentPosition.y + 180 };
-                return { id: child.id, x: childPosition.x + 135, y: childPosition.y };
-              });
-              const firstChild = childAnchors.reduce((min, child) => (child.x < min.x ? child : min), childAnchors[0]);
-              const lastChild = childAnchors.reduce((max, child) => (child.x > max.x ? child : max), childAnchors[0]);
-              const splitY = Math.min(...childAnchors.map((child) => child.y)) - 62;
-              const verticalStartY = parentBottomY;
-              const verticalEndY = splitY;
+            {nodes
+              .filter((node) => node.parentId)
+              .map((child) => {
+                const parent = child.parentId ? nodeById.get(child.parentId) : undefined;
+                if (!parent || !child.parentId) return null;
 
-              return (
-                <g key={`connector-${parentId}`}>
-                  <path d={`M ${parentCenterX} ${verticalStartY} V ${verticalEndY}`} fill="none" stroke="#D5DAE1" strokeWidth="1.4" />
-                  <path d={`M ${firstChild.x} ${splitY} H ${lastChild.x}`} fill="none" stroke="#D5DAE1" strokeWidth="1.4" />
-                  {childAnchors.map((child) => (
-                    <path key={`${parentId}-${child.id}`} d={`M ${child.x} ${splitY} V ${child.y}`} fill="none" stroke="#D5DAE1" strokeWidth="1.4" />
-                  ))}
-                </g>
-              );
-            })}
+                const parentPosition = positions[child.parentId] || { x: 560, y: 120 };
+                const childPosition = positions[child.id] || { x: parentPosition.x, y: parentPosition.y + 180 };
+
+                const parentCenterX = parentPosition.x + 135;
+                const parentBottomY = parentPosition.y + 70;
+                const childCenterX = childPosition.x + 135;
+                const childTopY = childPosition.y;
+
+                const distanceY = Math.max(80, Math.abs(childTopY - parentBottomY));
+                const controlOffset = Math.min(140, distanceY * 0.55);
+                const controlY1 = parentBottomY + controlOffset;
+                const controlY2 = childTopY - controlOffset;
+
+                return (
+                  <path
+                    key={`edge-${child.parentId}-${child.id}`}
+                    d={`M ${parentCenterX} ${parentBottomY} C ${parentCenterX} ${controlY1}, ${childCenterX} ${controlY2}, ${childCenterX} ${childTopY}`}
+                    fill="none"
+                    stroke="#D5DAE1"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                );
+              })}
           </svg>
           {nodes.map((node) => {
             const pos = positions[node.id] || { x: 560, y: 120 };
