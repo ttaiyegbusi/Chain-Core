@@ -19,6 +19,7 @@ import ClientsTable, { StatusTabs } from "@/components/ClientsTable";
 import ClientsOverviewStats from "@/components/ClientsOverviewStats";
 import { PaginationBar } from "@/components/Pagination";
 import { PageTransition, TablePageSkeleton } from "@/components/LoadingStates";
+import DashboardDateRangePicker, { getRange, DateRange } from "@/components/DashboardDateRangePicker";
 import {
   Client,
   ClientStatus,
@@ -59,6 +60,7 @@ export default function ClientsListPage({
   const [tab, setTab] = useState<"All" | ClientStatus>("All");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(8);
+  const [reportingRange, setReportingRange] = useState<DateRange>(() => getRange("This Week"));
 
   // Create-dropdown state.
   const [createOpen, setCreateOpen] = useState(false);
@@ -118,10 +120,10 @@ export default function ClientsListPage({
               <h2 className="text-base font-semibold text-text-primary">
                 {overviewTitle}
               </h2>
-              <div className="flex items-center gap-2">
-                <PillDropdown label="This Week" />
-                <PillDropdown label="Feb. 10th, 2025 - Feb. 20th, 2025" />
-              </div>
+              <DashboardDateRangePicker
+                value={reportingRange}
+                onChange={setReportingRange}
+              />
             </div>
 
             {/* Stats row */}
@@ -226,18 +228,5 @@ export default function ClientsListPage({
         </section>
       </main>
     </div>
-  );
-}
-
-/** Pill-style dropdown used for the "This Week" and date-range pickers. */
-function PillDropdown({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3 text-sm text-text-primary transition-colors hover:bg-surface-muted"
-    >
-      {label}
-      <ChevronDown size={15} className="text-text-secondary" aria-hidden />
-    </button>
   );
 }

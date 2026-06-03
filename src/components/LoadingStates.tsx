@@ -9,7 +9,7 @@ type PageTransitionProps = {
   className?: string;
 };
 
-export function PageTransition({ children, skeleton, delay = 360, className = "" }: PageTransitionProps) {
+export function PageTransition({ children, skeleton, delay = 650, className = "" }: PageTransitionProps) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
