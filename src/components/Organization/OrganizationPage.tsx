@@ -7,7 +7,6 @@ import {
   Edit,
   Maximize2,
   MinusCircle,
-  Move,
   Plus,
   PlusCircle,
   Search,
@@ -230,8 +229,8 @@ export default function OrganizationPage() {
     if (!draggingId || !dragStart) return;
     const dx = event.clientX - dragStart.pointerX;
     const dy = event.clientY - dragStart.pointerY;
-    const nextX = Math.max(40, snapToGrid(dragStart.startX + dx));
-    const nextY = Math.max(40, snapToGrid(dragStart.startY + dy));
+    const nextX = Math.max(40, dragStart.startX + dx);
+    const nextY = Math.max(40, dragStart.startY + dy);
     setPositions((prev) => ({
       ...prev,
       [draggingId]: { x: nextX, y: nextY },
@@ -239,6 +238,19 @@ export default function OrganizationPage() {
   };
 
   const onCanvasPointerUp = () => {
+    if (draggingId) {
+      setPositions((prev) => {
+        const current = prev[draggingId];
+        if (!current) return prev;
+        return {
+          ...prev,
+          [draggingId]: {
+            x: Math.max(40, snapToGrid(current.x)),
+            y: Math.max(40, snapToGrid(current.y)),
+          },
+        };
+      });
+    }
     setDraggingId(null);
     setDragStart(null);
   };
@@ -273,7 +285,8 @@ export default function OrganizationPage() {
                     levels={levels}
                     positions={positions}
                     selectedNodeId={selectedNodeId}
-                    setSelectedNodeId={(id) => {
+                    setSelectedNodeId={setSelectedNodeId}
+                    openDetails={(id) => {
                       setSelectedNodeId(id);
                       setDetailsOpen(true);
                     }}
@@ -360,7 +373,7 @@ function LevelsCanvas({ levels, updateLevelTitle, newLevelTitle, setNewLevelTitl
   );
 }
 
-function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId, openCreateNode, onNodePointerDown, onCanvasPointerMove, onCanvasPointerUp, draggingId }: { nodes: OrgNode[]; levels: OrgLevel[]; positions: Record<string, NodePosition>; selectedNodeId: string; setSelectedNodeId: (id: string) => void; openCreateNode: (id?: string, placement?: Placement) => void; onNodePointerDown: (id: string, event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerUp: () => void; draggingId: string | null }) {
+function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId, openDetails, openCreateNode, onNodePointerDown, onCanvasPointerMove, onCanvasPointerUp, draggingId }: { nodes: OrgNode[]; levels: OrgLevel[]; positions: Record<string, NodePosition>; selectedNodeId: string; setSelectedNodeId: (id: string) => void; openDetails: (id: string) => void; openCreateNode: (id?: string, placement?: Placement) => void; onNodePointerDown: (id: string, event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void; onCanvasPointerUp: () => void; draggingId: string | null }) {
   const nodeById = useMemo(() => new Map(nodes.map((node) => [node.id, node])), [nodes]);
   return (
     <div className="organization-grid relative min-h-[760px] overflow-auto p-8" onPointerMove={onCanvasPointerMove} onPointerUp={onCanvasPointerUp} onPointerCancel={onCanvasPointerUp}>
@@ -382,9 +395,18 @@ function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId
                 const parentBottomY = parentPosition.y + NODE_HEIGHT;
                 const childCenterX = childPosition.x + NODE_WIDTH / 2;
                 const childTopY = childPosition.y;
-                const gap = Math.max(48, childTopY - parentBottomY);
+                const gap = Math.max(56, childTopY - parentBottomY);
                 const elbowY = parentBottomY + gap / 2;
-                const path = `M ${parentCenterX} ${parentBottomY} V ${elbowY} H ${childCenterX} V ${childTopY}`;
+                const radius = 18;
+                const direction = childCenterX >= parentCenterX ? 1 : -1;
+                const horizontalStartX = parentCenterX;
+                const horizontalEndX = childCenterX;
+                const firstCornerX = horizontalStartX;
+                const secondCornerX = horizontalEndX;
+                const path =
+                  Math.abs(childCenterX - parentCenterX) < 2
+                    ? `M ${parentCenterX} ${parentBottomY} V ${childTopY}`
+                    : `M ${parentCenterX} ${parentBottomY} V ${elbowY - radius} Q ${firstCornerX} ${elbowY} ${firstCornerX + direction * radius} ${elbowY} H ${secondCornerX - direction * radius} Q ${secondCornerX} ${elbowY} ${secondCornerX} ${elbowY + radius} V ${childTopY}`;
 
                 return (
                   <path
@@ -393,8 +415,8 @@ function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId
                     fill="none"
                     stroke="#D5DAE1"
                     strokeWidth="1.6"
-                    strokeLinecap="square"
-                    strokeLinejoin="miter"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     vectorEffect="non-scaling-stroke"
                   />
                 );
@@ -405,7 +427,7 @@ function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId
             const level = levels.find((l) => l.id === node.levelId);
             return (
               <div key={node.id} className="absolute" style={{ left: pos.x, top: pos.y }} onPointerDown={(event) => onNodePointerDown(node.id, event)}>
-                <DraggableNodeCard node={node} level={level} selected={selectedNodeId === node.id} dragging={draggingId === node.id} onSelect={() => setSelectedNodeId(node.id)} onAddChild={() => openCreateNode(node.id, "child")} onAddLeft={() => openCreateNode(node.id, "left")} onAddRight={() => openCreateNode(node.id, "right")} />
+                <DraggableNodeCard node={node} level={level} selected={selectedNodeId === node.id} dragging={draggingId === node.id} onSelect={() => setSelectedNodeId(node.id)} onOpenDetails={() => openDetails(node.id)} onAddChild={() => openCreateNode(node.id, "child")} onAddLeft={() => openCreateNode(node.id, "left")} onAddRight={() => openCreateNode(node.id, "right")} />
               </div>
             );
           })}
@@ -423,14 +445,7 @@ function EmptyOrganizationState({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="flex min-h-[700px] items-center justify-center">
       <div className="flex w-[360px] flex-col items-center text-center">
-        <div className="relative mb-6 h-[118px] w-[150px]">
-          <div className="absolute left-7 top-3 h-20 w-24 rounded-full bg-[#E8EBF0]" />
-          <div className="absolute left-3 top-10 h-12 w-24 rounded-full bg-white shadow-[0_14px_30px_rgba(17,24,39,0.08)]" />
-          <div className="absolute right-2 top-10 h-12 w-24 rounded-full bg-white shadow-[0_14px_30px_rgba(17,24,39,0.08)]" />
-          <div className="absolute left-1/2 top-[62px] flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-white shadow-[0_12px_30px_rgba(49,87,246,0.28)]">
-            <Search size={26} />
-          </div>
-        </div>
+        <img src="/Illustration.svg" alt="No node level" className="mb-6 h-[118px] w-[150px] object-contain" />
         <h2 className="text-lg font-semibold text-text-primary">No Node Level</h2>
         <p className="mt-2 max-w-[260px] text-sm leading-5 text-text-secondary">You have not added any node level to your organization structure yet.</p>
         <button onClick={onCreate} type="button" className="focus-ring mt-6 inline-flex h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-white shadow-[0_10px_24px_rgba(49,87,246,0.22)] hover:bg-primary-hover">Add Node Level</button>
@@ -439,15 +454,14 @@ function EmptyOrganizationState({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-function DraggableNodeCard({ node, level, selected, dragging, onSelect, onAddChild, onAddLeft, onAddRight }: { node: OrgNode; level?: OrgLevel; selected: boolean; dragging: boolean; onSelect: () => void; onAddChild: () => void; onAddLeft: () => void; onAddRight: () => void }) {
+function DraggableNodeCard({ node, level, selected, dragging, onSelect, onOpenDetails, onAddChild, onAddLeft, onAddRight }: { node: OrgNode; level?: OrgLevel; selected: boolean; dragging: boolean; onSelect: () => void; onOpenDetails: () => void; onAddChild: () => void; onAddLeft: () => void; onAddRight: () => void }) {
   return (
     <div className="group relative select-none">
-      <div role="button" tabIndex={0} onClick={onSelect} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onSelect(); }} className={[
-        "relative flex h-[70px] w-[270px] items-center justify-center rounded-lg border bg-white px-6 text-center shadow-[0_8px_24px_rgba(17,24,39,0.04)] transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
+      <div role="button" tabIndex={0} onClick={onSelect} onDoubleClick={onOpenDetails} className={[
+        "relative flex h-[70px] w-[270px] items-center justify-center rounded-lg border bg-white px-6 text-center shadow-[0_8px_24px_rgba(17,24,39,0.04)] transition-[border-color,background-color,box-shadow,transform] outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
         selected ? "border-primary bg-[#EEF3FF] shadow-[0_12px_32px_rgba(49,87,246,0.12)]" : "border-border hover:border-primary/50",
         dragging ? "scale-[1.015] cursor-grabbing shadow-[0_18px_46px_rgba(17,24,39,0.12)]" : "cursor-grab",
       ].join(" ")}>
-        <span className="absolute left-3 top-3 text-text-muted opacity-0 transition-opacity group-hover:opacity-100"><Move size={14} /></span>
         <span className="absolute right-3 top-3 rounded-full bg-[#EEF3FF] px-2 py-0.5 text-[10px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">{level?.title || "Node"}</span>
         <span className="flex flex-col items-center justify-center">
           <span className="text-sm font-semibold text-text-primary">{node.name}</span>
@@ -481,11 +495,6 @@ function NodeDetailsPanel({ node, level, onClose, onEdit, onDelete, hasChildren 
         <button onClick={onClose} className="rounded-md p-2 text-text-secondary hover:bg-surface-muted"><X size={18} /></button>
       </div>
       <div className="flex-1 overflow-auto">
-        <div className="grid grid-cols-3 gap-2 border-b border-border p-4">
-          <Stat label="Clients" value={node.stats.clients.toLocaleString()} />
-          <Stat label="Staff" value={String(node.stats.staff)} />
-          <Stat label="Portfolio" value={node.stats.portfolio} />
-        </div>
         {rows.map(([label, value]) => (
           <details key={label} className="group border-b border-border" open={label === "Name"}>
             <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-4 text-sm text-text-secondary">
@@ -504,9 +513,6 @@ function NodeDetailsPanel({ node, level, onClose, onEdit, onDelete, hasChildren 
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return <div className="rounded-lg bg-surface-muted px-3 py-2"><p className="text-[11px] text-text-muted">{label}</p><p className="mt-1 text-sm font-semibold text-text-primary">{value}</p></div>;
-}
 
 function NodeSheet({ title, action, draft, setDraft, levels, onClose, onSubmit, placement }: { title: string; action: string; draft: NodeDraft; setDraft: React.Dispatch<React.SetStateAction<NodeDraft>>; levels: OrgLevel[]; onClose: () => void; onSubmit: () => void; placement?: Placement }) {
   const update = (key: keyof NodeDraft, value: string) => setDraft((prev) => ({ ...prev, [key]: value }));
