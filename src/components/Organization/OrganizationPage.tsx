@@ -18,6 +18,7 @@ import {
 import PrimaryRail from "@/components/PrimaryRail";
 import OrganizationSidebar from "./OrganizationSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
+import { CanvasPageSkeleton, PageTransition } from "@/components/LoadingStates";
 import { ORG_LEVELS, OrgLevel, OrgNode } from "@/data/organization";
 
 const countryOptions = ["Nigeria", "Ghana", "Kenya", "South Africa"];
@@ -273,6 +274,7 @@ export default function OrganizationPage() {
         </div>
 
         <section className="px-10 pb-10 pt-8">
+          <PageTransition skeleton={<CanvasPageSkeleton />}>
           <div className="flex gap-5">
             <div className="min-w-0 flex-1">
               <div className="rounded-none border border-border bg-white">
@@ -303,6 +305,7 @@ export default function OrganizationPage() {
               <NodeDetailsPanel node={selectedNode} level={levels.find((l) => l.id === selectedNode.levelId)} onClose={() => setDetailsOpen(false)} onEdit={openEditNode} onDelete={deleteNode} hasChildren={nodes.some((node) => node.parentId === selectedNodeId)} />
             )}
           </div>
+          </PageTransition>
         </section>
       </main>
 

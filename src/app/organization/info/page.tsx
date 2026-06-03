@@ -6,6 +6,7 @@ import PrimaryRail from "@/components/PrimaryRail";
 import OrganizationSidebar from "@/components/Organization/OrganizationSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import { Checkbox, SelectInput, TextInput } from "@/components/FormControls";
+import { FormPageSkeleton, PageTransition } from "@/components/LoadingStates";
 
 type InfoTab =
   | "details"
@@ -254,7 +255,7 @@ export default function OrganizationInfoPage() {
           </nav>
         </div>
 
-        <section className="min-h-[calc(100vh-116px)] bg-white px-10 pb-16">{renderActiveTab()}</section>
+        <section className="min-h-[calc(100vh-116px)] bg-white px-10 pb-16"><PageTransition skeleton={<FormPageSkeleton />} delay={300}>{renderActiveTab()}</PageTransition></section>
       </main>
     </div>
   );

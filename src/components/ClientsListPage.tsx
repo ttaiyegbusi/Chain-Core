@@ -18,6 +18,7 @@ import GlobalHeader from "@/components/GlobalHeader";
 import ClientsTable, { StatusTabs } from "@/components/ClientsTable";
 import ClientsOverviewStats from "@/components/ClientsOverviewStats";
 import { PaginationBar } from "@/components/Pagination";
+import { PageTransition, TablePageSkeleton } from "@/components/LoadingStates";
 import {
   Client,
   ClientStatus,
@@ -111,24 +112,25 @@ export default function ClientsListPage({
         />
 
         <section className="px-10 pb-10 pt-6">
-          {/* Overview header + date range dropdowns */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-base font-semibold text-text-primary">
-              {overviewTitle}
-            </h2>
-            <div className="flex items-center gap-2">
-              <PillDropdown label="This Week" />
-              <PillDropdown label="Feb. 10th, 2025 - Feb. 20th, 2025" />
+          <PageTransition skeleton={<TablePageSkeleton />}>
+            {/* Overview header + date range dropdowns */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-base font-semibold text-text-primary">
+                {overviewTitle}
+              </h2>
+              <div className="flex items-center gap-2">
+                <PillDropdown label="This Week" />
+                <PillDropdown label="Feb. 10th, 2025 - Feb. 20th, 2025" />
+              </div>
             </div>
-          </div>
 
-          {/* Stats row */}
-          <ClientsOverviewStats stats={OVERVIEW_STATS} />
+            {/* Stats row */}
+            <ClientsOverviewStats stats={OVERVIEW_STATS} />
 
-          {/* Status tabs */}
-          <StatusTabs active={tab} onChange={setTab} />
+            {/* Status tabs */}
+            <StatusTabs active={tab} onChange={setTab} />
 
-          {/* Search + filter + export + Create dropdown */}
+            {/* Search + filter + export + Create dropdown */}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <div className="relative">
               <Search
@@ -220,6 +222,7 @@ export default function ClientsListPage({
             onPageChange={setPage}
             onRowsPerPageChange={setRowsPerPage}
           />
+          </PageTransition>
         </section>
       </main>
     </div>
