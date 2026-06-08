@@ -56,7 +56,12 @@ const ICONS: RailIcon[] = [
     key: "gl",
     label: "General Ledger",
     icon: PanelsTopLeft,
-    match: (p) => p.includes("/create") || /\/accounting\/.*\/[0-9]+/.test(p),
+    href: "/accounting/general-ledger-report",
+    match: (p) =>
+      p.startsWith("/accounting/general-ledger-report") ||
+      p.startsWith("/accounting/provisional-report") ||
+      p.includes("/create") ||
+      /\/accounting\/.*\/[0-9]+/.test(p),
   },
 ];
 
