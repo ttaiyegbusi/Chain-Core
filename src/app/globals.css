@@ -396,3 +396,59 @@ body {
     transition: none !important;
   }
 }
+
+/* ============================================================
+ * Charts of Account and enterprise table micro-interactions
+ * ============================================================ */
+@keyframes chart-tab-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chart-tab-content-in {
+  animation: chart-tab-content-in 260ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes coa-row-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.coa-row-reveal {
+  animation: coa-row-reveal 220ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes expand-detail-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.expand-detail-in {
+  animation: expand-detail-in 260ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-tab-content-in,
+  .coa-row-reveal,
+  .expand-detail-in {
+    animation: none !important;
+  }
+}

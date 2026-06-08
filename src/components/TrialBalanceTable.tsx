@@ -112,12 +112,13 @@ export default function TrialBalanceTable({
                         onClick={() => toggle(row.id)}
                         aria-label={isExpanded ? "Collapse" : "Expand"}
                         aria-expanded={isExpanded}
-                        className="focus-ring flex h-5 w-5 items-center justify-center rounded text-text-secondary transition-transform duration-200"
-                        style={{
-                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
-                        }}
+                        className="focus-ring flex h-5 w-5 items-center justify-center rounded text-text-secondary"
                       >
-                        <ChevronRight size={16} aria-hidden />
+                        <ChevronRight
+                          size={16}
+                          aria-hidden
+                          className={isExpanded ? "rotate-90 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]" : "rotate-0 transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"}
+                        />
                       </button>
                     ) : (
                       <span className="h-5 w-5" />
