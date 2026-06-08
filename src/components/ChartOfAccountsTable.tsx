@@ -94,13 +94,12 @@ export default function ChartOfAccountsTable({
                         onClick={() => toggle(account.id)}
                         aria-label={isExpanded ? "Collapse" : "Expand"}
                         aria-expanded={isExpanded}
-                        className="focus-ring flex h-5 w-5 items-center justify-center rounded text-text-secondary"
+                        className="focus-ring flex h-5 w-5 items-center justify-center rounded text-text-secondary transition-transform duration-200"
+                        style={{
+                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+                        }}
                       >
-                        {isExpanded ? (
-                          <ChevronDown size={16} aria-hidden />
-                        ) : (
-                          <ChevronRight size={16} aria-hidden />
-                        )}
+                        <ChevronRight size={16} aria-hidden />
                       </button>
                     ) : (
                       <span className="h-5 w-5" />
