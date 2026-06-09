@@ -39,7 +39,7 @@ export default function AccountingSidebar({
 
   return (
     <aside
-      className="fixed left-[66px] top-0 z-20 flex h-screen w-[250px] min-w-[250px] flex-col border-r border-border bg-white"
+      className="fixed left-[var(--rail-width)] top-0 z-20 flex h-screen w-[250px] min-w-[250px] flex-col border-r border-border bg-white"
       aria-label="Accounting navigation"
     >
       {/* Module pill (dropdown style) */}

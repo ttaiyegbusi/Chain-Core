@@ -194,7 +194,7 @@ export default function GLDetailClient({ accountId }: { accountId: string }) {
 
       {/* Sticky footer only while editing */}
       {editing && (
-        <div className="fixed bottom-0 left-[66px] right-0 z-20 flex h-[72px] items-center justify-end gap-6 border-t border-border bg-white px-11">
+        <div className="fixed bottom-0 left-[var(--rail-width)] right-0 z-20 flex h-[72px] items-center justify-end gap-6 border-t border-border bg-white px-11">
           <button
             type="button"
             onClick={() => setEditing(false)}

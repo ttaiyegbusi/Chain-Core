@@ -136,7 +136,7 @@ function ChartsOfAccountInner() {
       <AccountingSidebar />
 
       {/* Content offset: 66px rail + 250px sidebar */}
-      <main className="ml-[316px]">
+      <main className="ml-[calc(var(--rail-width)+250px)]">
         {/* Header */}
         <GlobalHeader
           title="Accounting"
@@ -190,7 +190,7 @@ function ChartsOfAccountInner() {
 
 export default function ChartsOfAccountPage() {
   return (
-    <Suspense fallback={<div className="ml-[316px] p-10 text-sm text-text-muted">Loading…</div>}>
+    <Suspense fallback={<div className="ml-[calc(var(--rail-width)+250px)] p-10 text-sm text-text-muted">Loading…</div>}>
       <ChartsOfAccountInner />
     </Suspense>
   );

@@ -86,7 +86,7 @@ export default function IncomeExpensesPage() {
       <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
-      <main className="ml-[316px]">
+      <main className="ml-[calc(var(--rail-width)+250px)]">
         <GlobalHeader
           title="Accounting"
           crumbs={[

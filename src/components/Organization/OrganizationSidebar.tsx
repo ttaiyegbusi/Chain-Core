@@ -12,7 +12,7 @@ const MENU = [
 export default function OrganizationSidebar() {
   const pathname = usePathname() || "";
   return (
-    <aside className="fixed left-[66px] top-0 z-20 flex h-screen w-[250px] min-w-[250px] flex-col border-r border-border bg-white">
+    <aside className="fixed left-[var(--rail-width)] top-0 z-20 flex h-screen w-[250px] min-w-[250px] flex-col border-r border-border bg-white">
       <div className="px-4 pt-5">
         <button type="button" className="focus-ring flex w-full items-center justify-between rounded-md bg-surface-muted px-3 py-2.5">
           <span className="flex items-center gap-2">

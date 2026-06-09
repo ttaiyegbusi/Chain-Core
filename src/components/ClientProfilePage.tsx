@@ -109,7 +109,7 @@ export default function ClientProfilePage({ client, type, missingId }: { client?
     <div className="min-h-screen bg-white">
       <PrimaryRail />
       <ClientsSidebar menuLabel="SUB MENU" />
-      <main className="ml-[316px]">
+      <main className="ml-[calc(var(--rail-width)+250px)]">
         <GlobalHeader title={PAGE_TITLE[type]} />
         <section className="px-10 pb-10 pt-6">
           <Link href={backHref} className="focus-ring inline-flex items-center gap-1 rounded-md text-sm text-text-secondary transition-colors hover:text-text-primary">

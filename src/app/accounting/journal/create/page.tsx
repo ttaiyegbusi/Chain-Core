@@ -81,7 +81,7 @@ export default function CreateManualJournalPage() {
       <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
-      <main className="ml-[316px] pb-16">
+      <main className="ml-[calc(var(--rail-width)+250px)] pb-16">
         {/* Title bar */}
         <header className="flex h-[70px] items-center justify-between border-b border-border pl-10 pr-11">
           <h1 className="text-lg font-semibold text-text-primary">

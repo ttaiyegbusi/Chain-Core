@@ -260,7 +260,7 @@ export default function OrganizationPage() {
     <div className="min-h-screen bg-white">
       <PrimaryRail />
       <OrganizationSidebar />
-      <main className="ml-[316px]">
+      <main className="ml-[calc(var(--rail-width)+250px)]">
         <GlobalHeader
           title="Organization"
           crumbs={[{ label: "Organization" }, { label: "Organization Structure" }]}

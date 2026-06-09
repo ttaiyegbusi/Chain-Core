@@ -104,7 +104,7 @@ export default function GeneralLedgerReportPage() {
       <PrimaryRail />
       <AccountingSidebar />
 
-      <main className="ml-[316px]">
+      <main className="ml-[calc(var(--rail-width)+250px)]">
         <GlobalHeader
           title="Accounting"
           crumbs={[

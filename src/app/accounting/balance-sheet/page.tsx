@@ -96,7 +96,7 @@ export default function BalanceSheetPage() {
       <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
-      <main className="ml-[316px]">
+      <main className="ml-[calc(var(--rail-width)+250px)]">
         {/* Header */}
         <GlobalHeader
           title="Accounting"
