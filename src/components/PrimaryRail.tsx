@@ -1,7 +1,7 @@
 "use client";
 
 import { Home, Layers, Contact, Euro, Network, PanelLeftClose } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Logo from "./Logo";
@@ -53,6 +53,11 @@ export default function PrimaryRail() {
   const pathname = usePathname() || "/";
   const [expanded, setExpanded] = useState(false);
   const width = expanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
+  const activeIndex = useMemo(() => {
+    const index = ICONS.findIndex((item) => (item.match ? item.match(pathname) : item.href === pathname));
+    return index >= 0 ? index : 0;
+  }, [pathname]);
+  const itemStep = expanded ? 52 : 58;
 
   useEffect(() => {
     const saved = window.localStorage.getItem("chaincore-primary-nav-expanded");
@@ -106,7 +111,21 @@ export default function PrimaryRail() {
         ) : null}
       </div>
 
-      <nav className={["flex flex-1 flex-col gap-2 py-3", expanded ? "px-3" : "items-center px-0"].join(" ")}>
+      <nav className={["relative flex flex-1 flex-col gap-2 py-3", expanded ? "px-3" : "items-center px-0"].join(" ")}>
+        <span
+          aria-hidden
+          className={[
+            "pointer-events-none absolute z-0 bg-primary will-change-transform",
+            "transition-[transform,width,height,border-radius] duration-300",
+            "ease-[cubic-bezier(0.22,1,0.36,1)]",
+            expanded ? "left-3 top-3 h-11 w-[calc(100%-24px)] rounded-[14px]" : "left-1/2 top-3 h-[52px] w-[52px] -translate-x-1/2 rounded-[20px]",
+          ].join(" ")}
+          style={{
+            transform: expanded
+              ? `translate3d(0, ${activeIndex * itemStep}px, 0)`
+              : `translate3d(-50%, ${activeIndex * itemStep}px, 0)`,
+          }}
+        />
         {ICONS.map((item) => {
           const active = item.match ? item.match(pathname) : item.href === pathname;
           const Icon = item.icon;
@@ -118,19 +137,27 @@ export default function PrimaryRail() {
               aria-label={item.label}
               aria-current={active ? "page" : undefined}
               className={[
-                "focus-ring group relative flex rounded-[14px] no-underline",
-                expanded ? "h-11 w-full" : "h-12 w-12 items-center justify-center",
+                "focus-ring group relative z-10 flex rounded-[14px] no-underline",
+                expanded ? "h-11 w-full" : "h-[52px] w-[52px] items-center justify-center",
               ].join(" ")}
             >
               <span
                 className={[
-                  "flex h-full min-w-0 items-center rounded-[14px] transition-colors duration-150 ease-out",
-                  expanded ? "w-full justify-start gap-3 px-3" : "w-12 justify-center p-0",
-                  active ? "bg-primary text-white" : "text-text-secondary hover:bg-surface-muted hover:text-text-primary",
+                  "flex h-full min-w-0 items-center rounded-[14px] transition-colors duration-200 ease-out",
+                  expanded ? "w-full justify-start gap-3 px-3" : "w-[52px] justify-center p-0",
+                  active ? "text-white" : "text-text-secondary hover:bg-surface-muted hover:text-text-primary",
                 ].join(" ")}
               >
-                <Icon size={20} strokeWidth={1.9} aria-hidden className="shrink-0" />
-                {expanded ? <span className="min-w-0 truncate text-sm font-medium">{item.label}</span> : null}
+                <Icon
+                  size={20}
+                  strokeWidth={1.9}
+                  aria-hidden
+                  className={[
+                    "shrink-0 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                    active ? "scale-[1.04]" : "scale-100",
+                  ].join(" ")}
+                />
+                {expanded ? <span className="min-w-0 truncate text-sm font-medium transition-opacity duration-200">{item.label}</span> : null}
               </span>
 
               {!expanded ? (
