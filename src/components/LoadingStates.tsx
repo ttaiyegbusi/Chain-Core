@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 
 type PageTransitionProps = {
   children: ReactNode;
@@ -9,19 +9,7 @@ type PageTransitionProps = {
   className?: string;
 };
 
-export function PageTransition({ children, skeleton, delay = 120, className = "" }: PageTransitionProps) {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    setReady(false);
-    const id = window.setTimeout(() => setReady(true), delay);
-    return () => window.clearTimeout(id);
-  }, [delay]);
-
-  if (!ready && skeleton) {
-    return <div className={`page-transition-shell ${className}`}>{skeleton}</div>;
-  }
-
+export function PageTransition({ children, className = "" }: PageTransitionProps) {
   return <div className={`page-transition-in ${className}`}>{children}</div>;
 }
 
