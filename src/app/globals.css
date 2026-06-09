@@ -1,4 +1,4 @@
-:root { --rail-width: 66px; }
+:root { --rail-width: 72px; }
 
 @tailwind base;
 @tailwind components;
@@ -288,11 +288,11 @@ body {
 }
 
 .page-transition-in {
-  animation: page-transition-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-transition-in 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .page-transition-shell {
-  animation: page-transition-in 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: page-transition-in 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .skeleton-shimmer {
