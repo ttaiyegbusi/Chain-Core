@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { Search, SlidersHorizontal, Upload, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import ChartOfAccountsFilterModal, { ChartAccountFilterOptions } from "./ChartOfAccountsFilterModal";
+import ChartOfAccountsFilterModal from "./ChartOfAccountsFilterModal";
+
+interface FilterOptions {
+  type?: string;
+  minBalance?: number;
+  maxBalance?: number;
+}
 
 export default function ChartsToolbar({
   search,
@@ -12,13 +18,13 @@ export default function ChartsToolbar({
 }: {
   search: string;
   onSearch: (v: string) => void;
-  onFilter?: (filters: ChartAccountFilterOptions) => void;
+  onFilter?: (filters: FilterOptions) => void;
 }) {
   const router = useRouter();
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<ChartAccountFilterOptions>({});
+  const [filters, setFilters] = useState<FilterOptions>({});
 
-  const handleApplyFilter = (appliedFilters: ChartAccountFilterOptions) => {
+  const handleApplyFilter = (appliedFilters: FilterOptions) => {
     setFilters(appliedFilters);
     onFilter?.(appliedFilters);
     setFilterOpen(false);
@@ -49,20 +55,10 @@ export default function ChartsToolbar({
           <button
             type="button"
             onClick={() => setFilterOpen(true)}
-            className={[
-              "focus-ring inline-flex h-10 items-center gap-2 rounded-md border px-3.5 text-sm transition-colors",
-              Object.values(filters).some(Boolean)
-                ? "border-primary bg-primary/5 text-primary"
-                : "border-border-strong bg-white text-text-secondary hover:bg-surface-muted",
-            ].join(" ")}
+            className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
           >
             <SlidersHorizontal size={16} aria-hidden />
             Filter
-            {Object.values(filters).some(Boolean) && (
-              <span className="ml-0.5 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                {Object.values(filters).filter(Boolean).length}
-              </span>
-            )}
           </button>
 
           <button

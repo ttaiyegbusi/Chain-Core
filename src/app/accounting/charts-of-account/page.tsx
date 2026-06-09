@@ -15,7 +15,6 @@ import {
 } from "@/components/Pagination";
 import { CHART_OF_ACCOUNTS } from "@/data/accounts";
 import { ChartAccount, TabKey, TAB_TO_TYPE, TABS } from "@/lib/types";
-import { ChartAccountFilterOptions } from "@/components/ChartOfAccountsFilterModal";
 
 function isTabKey(v: string | null): v is TabKey {
   return !!v && TABS.some((t) => t.key === v);
@@ -63,12 +62,14 @@ function ChartsOfAccountInner() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(8);
-  const [filters, setFilters] = useState<ChartAccountFilterOptions>({});
+  const [filters, setFilters] = useState({
+    type: undefined as string | undefined,
+  });
 
   // Reset to page 1 whenever tab/search/rows change (spec 16.1)
   useEffect(() => {
     setPage(1);
-  }, [activeTab, search, rowsPerPage, filters]);
+  }, [activeTab, search, rowsPerPage]);
 
   const setTab = (t: TabKey) => {
     router.push(
@@ -82,41 +83,20 @@ function ChartsOfAccountInner() {
 
   // Base data filtered by the active category tab AND filter modal selections.
   const typeFiltered = useMemo(() => {
-    const activeType = TAB_TO_TYPE[activeTab];
-
-    const accountMatchesFilters = (account: ChartAccount) => {
-      if (activeType && account.type !== activeType) return false;
-      if (filters.type && account.type !== filters.type) return false;
-      if (filters.hierarchyType && account.hierarchyType !== filters.hierarchyType) return false;
-      if (filters.balanceSide && account.balanceSide !== filters.balanceSide) return false;
-      if (
-        filters.showHeadOfficeOnly &&
-        String(account.showGlOnlyForHeadOffice) !== filters.showHeadOfficeOnly
-      ) {
-        return false;
-      }
-      return true;
-    };
-
-    const filterByAccountMeta = (nodes: ChartAccount[]): ChartAccount[] => {
-      return nodes
-        .map((node) => {
-          const children = node.children ? filterByAccountMeta(node.children) : [];
-          const selfMatches = accountMatchesFilters(node);
-
-          if (selfMatches || children.length) {
-            return {
-              ...node,
-              children: children.length ? children : selfMatches ? node.children : undefined,
-            };
-          }
-
-          return null;
-        })
-        .filter(Boolean) as ChartAccount[];
-    };
-
-    return filterByAccountMeta(CHART_OF_ACCOUNTS);
+    let result = CHART_OF_ACCOUNTS;
+    
+    // Apply category tab filter
+    const type = TAB_TO_TYPE[activeTab];
+    if (type) {
+      result = result.filter((a) => a.type === type);
+    }
+    
+    // Apply account type filter from modal (if set and not "All")
+    if (filters.type) {
+      result = result.filter((a) => a.type === filters.type);
+    }
+    
+    return result;
   }, [activeTab, filters]);
 
   // On "All" tab show only roots (collapsed). On category tabs show full tree.
@@ -180,18 +160,17 @@ function ChartsOfAccountInner() {
             search={search} 
             onSearch={setSearch}
             onFilter={(newFilters) => {
-              setFilters(newFilters);
+              setFilters(newFilters as { type: string | undefined });
               setPage(1);
             }}
           />
 
-          <div key={tableKey} className="chart-tab-content-in">
-            <ChartOfAccountsTable
-              data={searched}
-              showType={showType}
-              defaultExpanded={defaultExpanded}
-            />
-          </div>
+          <ChartOfAccountsTable
+            key={tableKey}
+            data={searched}
+            showType={showType}
+            defaultExpanded={defaultExpanded}
+          />
 
           <HorizontalScrollControls />
 

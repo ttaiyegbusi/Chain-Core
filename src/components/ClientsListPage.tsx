@@ -11,18 +11,21 @@ import {
   Building2,
   Home as HomeIcon,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import PrimaryRail from "@/components/PrimaryRail";
 import ClientsSidebar from "@/components/ClientsSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import ClientsTable, { StatusTabs } from "@/components/ClientsTable";
 import ClientsOverviewStats from "@/components/ClientsOverviewStats";
+import ClientOnboardingModal from "@/components/ClientOnboardingModal";
 import { PaginationBar } from "@/components/Pagination";
 import { PageTransition, TablePageSkeleton } from "@/components/LoadingStates";
 import DashboardDateRangePicker, { getRange, DateRange } from "@/components/DashboardDateRangePicker";
 import {
   Client,
   ClientStatus,
+  ClientType,
   OVERVIEW_STATS,
 } from "@/data/clients";
 
@@ -41,11 +44,11 @@ interface Props {
   crumbLast: string;
 }
 
-const CREATE_OPTIONS = [
-  { label: "Individual Client", icon: UserCircle2, href: "/clients/individual" },
-  { label: "Corporate Client", icon: Building2, href: "/clients/corporate" },
-  { label: "Center", icon: HomeIcon, href: "/clients/center" },
-  { label: "Persons", icon: Users, href: "/clients/persons" },
+const CREATE_OPTIONS: Array<{ label: string; icon: LucideIcon; type: ClientType }> = [
+  { label: "Individual Client", icon: UserCircle2, type: "Individual" },
+  { label: "Corporate Client", icon: Building2, type: "Corporate" },
+  { label: "Center", icon: HomeIcon, type: "Center" },
+  { label: "Persons", icon: Users, type: "Persons" },
 ];
 
 export default function ClientsListPage({
@@ -64,6 +67,7 @@ export default function ClientsListPage({
 
   // Create-dropdown state.
   const [createOpen, setCreateOpen] = useState(false);
+  const [createType, setCreateType] = useState<ClientType | null>(null);
   const createRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!createOpen) return;
@@ -190,16 +194,19 @@ export default function ClientsListPage({
                     {CREATE_OPTIONS.map((opt) => {
                       const Icon = opt.icon;
                       return (
-                        <Link
+                        <button
                           key={opt.label}
-                          href={opt.href}
-                          onClick={() => setCreateOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 text-sm text-text-primary transition-colors hover:bg-surface-muted"
+                          type="button"
+                          onClick={() => {
+                            setCreateOpen(false);
+                            setCreateType(opt.type);
+                          }}
+                          className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-text-primary transition-colors hover:bg-surface-muted"
                           role="menuitem"
                         >
                           <Icon size={16} className="text-text-secondary" aria-hidden />
                           {opt.label}
-                        </Link>
+                        </button>
                       );
                     })}
                   </div>
@@ -227,6 +234,12 @@ export default function ClientsListPage({
           </PageTransition>
         </section>
       </main>
+      {createType && (
+        <ClientOnboardingModal
+          type={createType}
+          onClose={() => setCreateType(null)}
+        />
+      )}
     </div>
   );
 }

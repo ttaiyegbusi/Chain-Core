@@ -165,7 +165,7 @@ export default function JournalTable({
                 <tr
                   ref={isFocused ? focusRowRef : null}
                   className={[
-                    "coa-row-reveal border-b border-border transition-colors duration-200",
+                    "border-b border-border transition-colors",
                     isExpanded ? "bg-surface-muted/40" : "hover:bg-surface-muted/30",
                     isFlashing ? "coreai-row-flash" : "",
                   ].join(" ")}
@@ -178,11 +178,11 @@ export default function JournalTable({
                       aria-expanded={isExpanded}
                       className="focus-ring flex items-center gap-2 text-sm text-text-primary"
                     >
-                      <ChevronRight
-                        size={16}
-                        className={isExpanded ? "rotate-90 text-text-secondary transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]" : "rotate-0 text-text-secondary transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"}
-                        aria-hidden
-                      />
+                      {isExpanded ? (
+                        <ChevronDown size={16} className="text-text-secondary" aria-hidden />
+                      ) : (
+                        <ChevronRight size={16} className="text-text-secondary" aria-hidden />
+                      )}
                       {e.id}
                     </button>
                   </td>
