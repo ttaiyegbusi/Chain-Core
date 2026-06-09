@@ -1,7 +1,27 @@
 "use client";
 
-import { ReceiptText } from "lucide-react";
+import {
+  Ban,
+  Building2,
+  CheckCircle2,
+  Clock3,
+  Home,
+  UserCircle2,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { OverviewStat } from "@/data/clients";
+
+const iconMap: Record<OverviewStat["icon"], LucideIcon> = {
+  user: UserCircle2,
+  building: Building2,
+  center: Home,
+  persons: Users,
+  check: CheckCircle2,
+  clock: Clock3,
+  ban: Ban,
+  users: Users,
+};
 
 export default function ClientsOverviewStats({
   stats,
@@ -22,9 +42,10 @@ function StatCard({ stat }: { stat: OverviewStat }) {
   const toneClass = isIncrease ? "text-emerald-600" : "text-red-600";
   const arrow = isIncrease ? "▲" : "▼";
   const label = isIncrease ? "Increase" : "Decrease";
+  const Icon = iconMap[stat.icon];
 
   return (
-    <article className="min-h-[148px] rounded-[20px] border border-border-strong bg-white px-6 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.02)] transition-shadow duration-300 hover:shadow-[0_10px_30px_rgba(16,24,40,0.04)]">
+    <article className="min-h-[148px] rounded-[20px] border border-border-strong bg-white px-6 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(16,24,40,0.05)]">
       <div className="flex items-start justify-between gap-4">
         <p className={`text-sm font-semibold leading-5 ${toneClass}`}>
           {arrow} {stat.percent}% {label}
@@ -43,7 +64,7 @@ function StatCard({ stat }: { stat: OverviewStat }) {
         </div>
 
         <span className="mb-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-surface-muted text-text-secondary">
-          <ReceiptText size={24} strokeWidth={1.8} aria-hidden />
+          <Icon size={24} strokeWidth={1.8} aria-hidden />
         </span>
       </div>
     </article>

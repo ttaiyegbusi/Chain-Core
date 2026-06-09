@@ -217,17 +217,71 @@ export function findClient(
 
 export interface OverviewStat {
   direction: "increase" | "decrease";
-  percent: number; // 20 → "20% Increase"
-  period: string; // "Last month"
-  label: string; // "Total Transactions (Value)"
-  value: string; // "$40,000"
+  percent: number;
+  period: string;
+  label: string;
+  value: string;
+  icon: "user" | "building" | "center" | "persons" | "check" | "clock" | "ban" | "users";
 }
 
-// Same four stats are used across all four list pages for consistency with
-// the design reference. In a real app these would vary per type.
-export const OVERVIEW_STATS: OverviewStat[] = [
-  { direction: "increase", percent: 20, period: "Last month", label: "Total Transactions (Value)", value: "$40,000" },
-  { direction: "decrease", percent: 20, period: "Last month", label: "Total Transactions (Value)", value: "$40,000" },
-  { direction: "increase", percent: 20, period: "Last month", label: "Total Transactions (Value)", value: "$40,000" },
-  { direction: "decrease", percent: 20, period: "Last month", label: "Total Transactions (Value)", value: "$40,000" },
-];
+function countByStatus(list: Client[], status: ClientStatus): number {
+  return list.filter((client) => client.status === status).length;
+}
+
+function formatCount(value: number): string {
+  return new Intl.NumberFormat("en-US").format(value);
+}
+
+export function getClientOverviewStats(type: ClientType): OverviewStat[] {
+  const list =
+    type === "Individual"
+      ? INDIVIDUAL_CLIENTS
+      : type === "Corporate"
+      ? CORPORATE_CLIENTS
+      : type === "Center"
+      ? CENTER_CLIENTS
+      : PERSONS_CLIENTS;
+
+  const total = list.length;
+  const active = countByStatus(list, "Active");
+  const inactive = countByStatus(list, "Inactive");
+  const suspended = countByStatus(list, "Suspended");
+
+  if (type === "Corporate") {
+    return [
+      { direction: "increase", percent: 18, period: "Last month", label: "Total Corporate Clients", value: formatCount(total), icon: "building" },
+      { direction: "increase", percent: 12, period: "Last month", label: "Active Corporate Accounts", value: formatCount(active), icon: "check" },
+      { direction: "decrease", percent: 6, period: "Last month", label: "Pending Verification", value: formatCount(inactive), icon: "clock" },
+      { direction: "decrease", percent: 4, period: "Last month", label: "Suspended Accounts", value: formatCount(suspended), icon: "ban" },
+    ];
+  }
+
+  if (type === "Center") {
+    const members = total * 32;
+    const averageSize = Math.round(members / Math.max(total, 1));
+    return [
+      { direction: "increase", percent: 15, period: "Last month", label: "Total Centers", value: formatCount(total), icon: "center" },
+      { direction: "increase", percent: 10, period: "Last month", label: "Active Centers", value: formatCount(active), icon: "check" },
+      { direction: "increase", percent: 22, period: "Last month", label: "Total Members", value: formatCount(members), icon: "users" },
+      { direction: "increase", percent: 8, period: "Last month", label: "Average Center Size", value: formatCount(averageSize), icon: "persons" },
+    ];
+  }
+
+  if (type === "Persons") {
+    const linked = Math.max(total - 1, 0);
+    const unassigned = total - linked;
+    return [
+      { direction: "increase", percent: 16, period: "Last month", label: "Total Persons", value: formatCount(total), icon: "persons" },
+      { direction: "increase", percent: 11, period: "Last month", label: "Active Persons", value: formatCount(active), icon: "check" },
+      { direction: "increase", percent: 9, period: "Last month", label: "Linked Clients", value: formatCount(linked), icon: "users" },
+      { direction: "decrease", percent: 5, period: "Last month", label: "Unassigned Persons", value: formatCount(unassigned), icon: "clock" },
+    ];
+  }
+
+  return [
+    { direction: "increase", percent: 20, period: "Last month", label: "Total Individual Clients", value: formatCount(total), icon: "user" },
+    { direction: "increase", percent: 14, period: "Last month", label: "Active Clients", value: formatCount(active), icon: "check" },
+    { direction: "decrease", percent: 7, period: "Last month", label: "Inactive Clients", value: formatCount(inactive), icon: "clock" },
+    { direction: "decrease", percent: 3, period: "Last month", label: "Suspended Clients", value: formatCount(suspended), icon: "ban" },
+  ];
+}

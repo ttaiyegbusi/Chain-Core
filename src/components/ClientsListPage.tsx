@@ -26,7 +26,7 @@ import {
   Client,
   ClientStatus,
   ClientType,
-  OVERVIEW_STATS,
+  getClientOverviewStats,
 } from "@/data/clients";
 
 interface Props {
@@ -101,6 +101,8 @@ export default function ClientsListPage({
 
   const totalItems = 500; // matches the design's "of 500" label
   const totalPages = Math.ceil(totalItems / rowsPerPage);
+  const clientType = clients[0]?.type ?? "Individual";
+  const overviewStats = useMemo(() => getClientOverviewStats(clientType), [clientType]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -131,7 +133,7 @@ export default function ClientsListPage({
             </div>
 
             {/* Stats row */}
-            <ClientsOverviewStats stats={OVERVIEW_STATS} />
+            <ClientsOverviewStats stats={overviewStats} />
 
             {/* Status tabs */}
             <StatusTabs active={tab} onChange={setTab} />
