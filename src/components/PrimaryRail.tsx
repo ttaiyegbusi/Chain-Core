@@ -33,8 +33,8 @@ const ICONS: RailIcon[] = [
     href: "/organization/structure",
     match: (p) => p.startsWith("/organization"),
   },
-  { key: "layers", label: "Products", icon: Layers },
-  { key: "info", label: "Information", icon: Info },
+  { key: "layers", label: "Products", icon: Layers, href: "/products", match: (p) => p.startsWith("/products") },
+  { key: "info", label: "Information", icon: Info, href: "/information", match: (p) => p.startsWith("/information") },
   {
     key: "contacts",
     label: "Customers",
@@ -42,8 +42,8 @@ const ICONS: RailIcon[] = [
     href: "/clients/individual",
     match: (p) => p.startsWith("/clients"),
   },
-  { key: "wallet", label: "Wallets", icon: Wallet },
-  { key: "reports", label: "Reports", icon: Newspaper },
+  { key: "wallet", label: "Wallets", icon: Wallet, href: "/wallets", match: (p) => p.startsWith("/wallets") },
+  { key: "reports", label: "Reports", icon: Newspaper, href: "/reports", match: (p) => p.startsWith("/reports") },
   {
     key: "accounting",
     label: "Accounting",
