@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, ChevronDown } from "lucide-react";
+import type { DateRange as RdpRange } from "react-day-picker";
+import { Calendar } from "@/components/ui/calendar";
 
 type QuickRange = "Today" | "This Week" | "This Month" | "Last Month" | "This Quarter" | "This Year" | "Custom";
 
@@ -83,13 +85,17 @@ export default function DashboardDateRangePicker({
 }) {
   const [quickOpen, setQuickOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [draftStart, setDraftStart] = useState(value.startDate);
-  const [draftEnd, setDraftEnd] = useState(value.endDate);
+  const [draftRange, setDraftRange] = useState<RdpRange | undefined>({
+    from: new Date(`${value.startDate}T00:00:00`),
+    to: new Date(`${value.endDate}T00:00:00`),
+  });
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setDraftStart(value.startDate);
-    setDraftEnd(value.endDate);
+    setDraftRange({
+      from: new Date(`${value.startDate}T00:00:00`),
+      to: new Date(`${value.endDate}T00:00:00`),
+    });
   }, [value.startDate, value.endDate]);
 
   useEffect(() => {
@@ -118,7 +124,14 @@ export default function DashboardDateRangePicker({
   };
 
   const applyCustomRange = () => {
-    onChange({ label: "Custom", startDate: draftStart, endDate: draftEnd });
+    if (!draftRange?.from) return;
+    const from = draftRange.from;
+    const to = draftRange.to ?? draftRange.from;
+    onChange({
+      label: "Custom",
+      startDate: toInputDate(from),
+      endDate: toInputDate(to),
+    });
     setCalendarOpen(false);
   };
 
@@ -168,35 +181,31 @@ export default function DashboardDateRangePicker({
       )}
 
       {calendarOpen && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-30 w-[360px] rounded-2xl border border-border bg-white p-4 ">
-          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-text-primary">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-30 w-[340px] rounded-2xl border border-border bg-white p-2">
+          <div className="flex items-center gap-2 px-3 pt-2 text-sm font-semibold text-text-primary">
             <CalendarDays size={17} aria-hidden />
             Select reporting period
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="space-y-1.5 text-xs text-text-muted">
-              Start date
-              <input
-                type="date"
-                value={draftStart}
-                onChange={(event) => setDraftStart(event.target.value)}
-                className="focus-ring h-10 w-full rounded-md border border-border-strong px-3 text-sm text-text-primary"
-              />
-            </label>
-            <label className="space-y-1.5 text-xs text-text-muted">
-              End date
-              <input
-                type="date"
-                value={draftEnd}
-                onChange={(event) => setDraftEnd(event.target.value)}
-                className="focus-ring h-10 w-full rounded-md border border-border-strong px-3 text-sm text-text-primary"
-              />
-            </label>
-          </div>
-          <p className="mt-3 text-xs leading-5 text-text-muted">
-            This range will drive the overview cards, tables, and future CBA reports when live data is connected.
+
+          <Calendar
+            mode="range"
+            numberOfMonths={1}
+            selected={draftRange}
+            onSelect={setDraftRange}
+            defaultMonth={draftRange?.from}
+          />
+
+          <p className="px-3 text-xs leading-5 text-text-muted">
+            {draftRange?.from
+              ? `${formatDisplayDate(toInputDate(draftRange.from))}${
+                  draftRange.to
+                    ? ` – ${formatDisplayDate(toInputDate(draftRange.to))}`
+                    : ""
+                }`
+              : "Pick a start and end date."}
           </p>
-          <div className="mt-4 flex justify-end gap-2">
+
+          <div className="mt-2 flex justify-end gap-2 px-2 pb-2">
             <button
               type="button"
               onClick={() => setCalendarOpen(false)}
@@ -207,7 +216,8 @@ export default function DashboardDateRangePicker({
             <button
               type="button"
               onClick={applyCustomRange}
-              className="focus-ring h-9 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover"
+              disabled={!draftRange?.from}
+              className="focus-ring h-9 rounded-md bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-40"
             >
               Apply
             </button>

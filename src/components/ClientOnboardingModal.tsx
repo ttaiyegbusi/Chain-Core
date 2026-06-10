@@ -150,10 +150,10 @@ function NestedSheet({ title, onClose, kind }: { title: string; onClose: () => v
               <PhoneInput label={kind === "employer" ? "Employer Phone Number" : "Business Phone Number"} />
               <div className="col-span-2 mt-1 grid grid-cols-2 gap-4">
                 <SelectInput label={kind === "employer" ? "First Address" : "Business Address"} placeholder="Country" />
-                <TextInput label="\u00a0" placeholder="Street" />
-                <SelectInput label="\u00a0" placeholder="State" />
-                <SelectInput label="\u00a0" placeholder="City" />
-                <TextInput label="\u00a0" placeholder="Postal Code" />
+                <TextInput label="Street" placeholder="Enter street" />
+                <SelectInput label="State" placeholder="Select state" />
+                <SelectInput label="City" placeholder="Select city" />
+                <TextInput label="Postal Code" placeholder="Enter postal code" />
               </div>
             </div>
           )}
@@ -172,24 +172,24 @@ function NestedSheet({ title, onClose, kind }: { title: string; onClose: () => v
 function BasicPersonFields() {
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-4">
-      <UploadBox label="Client Image" value="Temitope Aiyegbusi.png" />
-      <UploadBox label="Client Signature" value="Temitope Aiyegbusi Signature..." />
-      <TextInput label="First Name" value="Temitope" />
-      <TextInput label="Middle Name" value="Ayokunle" />
-      <TextInput label="Last Name" value="Aiyegbusi" />
-      <TextInput label="Father’s Name" value="Olusegun" />
-      <TextInput label="Email Address" value="aiyegbusitope@gmail.com" type="email" />
-      <PhoneInput label="Phone Number" value="902 647 3823" />
-      <SelectInput label="Gender" value="male" />
-      <TextInput label="Client ID" value="12349032BS" />
-      <TextInput label="Date of Birth" value="12 January, 2024" />
-      <SelectInput label="Salutation" value="single" />
-      <SelectInput label="Nationality" value="nigeria" />
-      <SelectInput label="Citizenship" value="nigeria" />
-      <SelectInput label="Marital Status" value="single" />
-      <SelectInput label="Primary Identification Type" value="passport" />
-      <TextInput label="Primary Identification Expiration Date" value="12 January, 2024" />
-      <SelectInput label="Alternative Identification Type" value="passport" />
+      <UploadBox label="Client Image" />
+      <UploadBox label="Client Signature" />
+      <TextInput label="First Name" placeholder="Enter first name" />
+      <TextInput label="Middle Name" placeholder="Enter middle name" />
+      <TextInput label="Last Name" placeholder="Enter last name" />
+      <TextInput label="Father’s Name" placeholder="Enter father’s name" />
+      <TextInput label="Email Address" type="email" placeholder="Enter email address" />
+      <PhoneInput label="Phone Number" />
+      <SelectInput label="Gender" placeholder="Select gender" />
+      <TextInput label="Client ID" placeholder="Enter client ID" />
+      <TextInput label="Date of Birth" placeholder="Select date of birth" />
+      <SelectInput label="Salutation" placeholder="Select salutation" />
+      <SelectInput label="Nationality" placeholder="Select nationality" />
+      <SelectInput label="Citizenship" placeholder="Select citizenship" />
+      <SelectInput label="Marital Status" placeholder="Select marital status" />
+      <SelectInput label="Primary Identification Type" placeholder="Select ID type" />
+      <TextInput label="Primary Identification Expiration Date" placeholder="Select expiration date" />
+      <SelectInput label="Alternative Identification Type" placeholder="Select ID type" />
       <TextInput label="Alternative Identification Expiration Date" />
     </div>
   );
@@ -201,17 +201,17 @@ function IndividualStep({ step, openNested }: { step: number; openNested: (kind:
     <div className="grid grid-cols-2 gap-x-4 gap-y-4">
       <div className="col-span-2 grid grid-cols-2 gap-4">
         <SelectInput label="First Address" placeholder="Country" />
-        <TextInput label="\u00a0" placeholder="Street" />
-        <SelectInput label="\u00a0" placeholder="State" />
-        <SelectInput label="\u00a0" placeholder="City" />
-        <TextInput label="\u00a0" placeholder="Postal Code" />
+        <TextInput label="Street" placeholder="Enter street" />
+        <SelectInput label="State" placeholder="Select state" />
+        <SelectInput label="City" placeholder="Select city" />
+        <TextInput label="Postal Code" placeholder="Enter postal code" />
       </div>
       <div className="col-span-2 mt-2 grid grid-cols-2 gap-4">
         <SelectInput label="Second Address" placeholder="Country" />
-        <TextInput label="\u00a0" placeholder="Street" />
-        <SelectInput label="\u00a0" placeholder="State" />
-        <SelectInput label="\u00a0" placeholder="City" />
-        <TextInput label="\u00a0" placeholder="Postal Code" />
+        <TextInput label="Street" placeholder="Enter street" />
+        <SelectInput label="State" placeholder="Select state" />
+        <SelectInput label="City" placeholder="Select city" />
+        <TextInput label="Postal Code" placeholder="Enter postal code" />
       </div>
       <TextInput label="Email Address" />
       <TextInput label="Additional Email Address" />
@@ -227,19 +227,19 @@ function IndividualStep({ step, openNested }: { step: number; openNested: (kind:
           <SelectInput label="Company Name" placeholder="Search" />
           <button type="button" onClick={() => openNested("employer")} className="mb-3 ml-4 whitespace-nowrap text-sm text-primary">Create New Employer +</button>
         </div>
-        <SelectInput label="Industry / Sector" value="nigeria" />
-        <TextInput label="Position" value="Product Designer" />
-        <SelectInput label="Employment Type" value="full-time" />
-        <SelectInput label="Employment Status" value="active" />
-        <SelectInput label="Source of Income" value="salary" />
-        <TextInput label="Monthly Income" value="$40,000" />
+        <SelectInput label="Industry / Sector" placeholder="Select industry" />
+        <TextInput label="Position" placeholder="Enter position" />
+        <SelectInput label="Employment Type" placeholder="Select employment type" />
+        <SelectInput label="Employment Status" placeholder="Select employment status" />
+        <SelectInput label="Source of Income" placeholder="Select source of income" />
+        <TextInput label="Monthly Income" placeholder="Enter monthly income" />
       </div>
       <div className="border-t border-border pt-4">
         <div className="mb-3 flex items-center justify-between">
           <h4 className="text-sm font-medium text-text-primary">Owned Businesses</h4>
           <button type="button" onClick={() => openNested("business")} className="text-sm text-primary">Create New Owned Business +</button>
         </div>
-        <SelectInput label="Business Name" value="nigeria" />
+        <SelectInput label="Business Name" placeholder="Enter business name" />
         <button type="button" className="mt-3 text-sm text-primary">Add Another Owned Business</button>
       </div>
     </div>
@@ -290,7 +290,7 @@ function GenericClientStep({ type, step }: { type: ClientKind; step: number }) {
       <div className="grid grid-cols-2 gap-4">
         <TextInput label="Company Name" value="New Corporate Client" />
         <TextInput label="Registration Number" value="RC-102938" />
-        <SelectInput label="Industry / Sector" value="nigeria" />
+        <SelectInput label="Industry / Sector" placeholder="Select industry" />
         <TextInput label="Tax Identification Number" />
         <TextInput label="Email Address" />
         <PhoneInput label="Phone Number" />

@@ -143,25 +143,25 @@ export default function ClientsTable({
                     <MoreVertical size={16} aria-hidden />
                   </button>
                   {openMenu === c.id && (
-                    <div className="absolute right-5 top-full z-10 mt-1 w-40 rounded-lg border border-border bg-white py-1 ">
+                    <div className="absolute right-5 top-full z-20 mt-1.5 w-44 overflow-hidden rounded-xl border border-border-strong bg-white py-1 text-left">
                       <Link
                         href={`${detailBasePath}/${c.id}`}
                         onClick={() => setOpenMenu(null)}
-                        className="block px-3 py-2 text-sm text-text-primary hover:bg-surface-muted"
+                        className="block w-full px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-muted"
                       >
                         View Details
                       </Link>
                       <button
                         type="button"
                         onClick={() => setOpenMenu(null)}
-                        className="block w-full px-3 py-2 text-left text-sm text-text-primary hover:bg-surface-muted"
+                        className="block w-full px-4 py-2.5 text-left text-sm text-text-primary transition-colors hover:bg-surface-muted"
                       >
                         Edit Client
                       </button>
                       <button
                         type="button"
                         onClick={() => setOpenMenu(null)}
-                        className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                        className="block w-full px-4 py-2.5 text-left text-sm text-red-600 transition-colors hover:bg-red-50"
                       >
                         Suspend
                       </button>

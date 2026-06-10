@@ -11,6 +11,8 @@ import {
   Building2,
   Home as HomeIcon,
   Users,
+  Check,
+  X as XIcon,
   type LucideIcon,
 } from "lucide-react";
 import ClientsSidebar from "@/components/ClientsSidebar";
@@ -64,6 +66,40 @@ export default function ClientsListPage({
   const [rowsPerPage, setRowsPerPage] = useState(8);
   const [reportingRange, setReportingRange] = useState<DateRange>(() => getRange("This Week"));
 
+  // Filter popover state. Status & gender are multi-select; empty set = no filter.
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<Set<ClientStatus>>(new Set());
+  const [genderFilter, setGenderFilter] = useState<Set<"Male" | "Female">>(new Set());
+  const filterRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!filterOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", onDown);
+    return () => window.removeEventListener("mousedown", onDown);
+  }, [filterOpen]);
+
+  const toggleStatus = (s: ClientStatus) =>
+    setStatusFilter((prev) => {
+      const next = new Set(prev);
+      next.has(s) ? next.delete(s) : next.add(s);
+      return next;
+    });
+  const toggleGender = (g: "Male" | "Female") =>
+    setGenderFilter((prev) => {
+      const next = new Set(prev);
+      next.has(g) ? next.delete(g) : next.add(g);
+      return next;
+    });
+  const clearFilters = () => {
+    setStatusFilter(new Set());
+    setGenderFilter(new Set());
+  };
+  const activeFilterCount = statusFilter.size + genderFilter.size;
+
   // Create-dropdown state.
   const [createOpen, setCreateOpen] = useState(false);
   const [createType, setCreateType] = useState<ClientType | null>(null);
@@ -83,6 +119,8 @@ export default function ClientsListPage({
     const q = search.trim().toLowerCase();
     return clients.filter((c) => {
       if (tab !== "All" && c.status !== tab) return false;
+      if (statusFilter.size > 0 && !statusFilter.has(c.status)) return false;
+      if (genderFilter.size > 0 && !genderFilter.has(c.gender)) return false;
       if (
         q &&
         !(
@@ -96,7 +134,7 @@ export default function ClientsListPage({
       }
       return true;
     });
-  }, [clients, search, tab]);
+  }, [clients, search, tab, statusFilter, genderFilter]);
 
   const totalItems = 500; // matches the design's "of 500" label
   const totalPages = Math.ceil(totalItems / rowsPerPage);
@@ -155,13 +193,89 @@ export default function ClientsListPage({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
-              >
-                <SlidersHorizontal size={16} aria-hidden />
-                Filter
-              </button>
+              <div className="relative" ref={filterRef}>
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen((o) => !o)}
+                  aria-expanded={filterOpen}
+                  className={`focus-ring inline-flex h-10 items-center gap-2 rounded-md border px-3.5 text-sm transition-colors ${
+                    activeFilterCount > 0
+                      ? "border-primary bg-[#EEF3FF] text-primary"
+                      : "border-border-strong bg-white text-text-secondary hover:bg-surface-muted"
+                  }`}
+                >
+                  <SlidersHorizontal size={16} aria-hidden />
+                  Filter
+                  {activeFilterCount > 0 && (
+                    <span className="ml-0.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-xs font-medium text-white">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+
+                {filterOpen && (
+                  <div className="absolute right-0 top-[calc(100%+8px)] z-30 w-64 rounded-xl border border-border-strong bg-white p-4">
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-sm font-semibold text-text-primary">
+                        Filters
+                      </p>
+                      {activeFilterCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={clearFilters}
+                          className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-primary"
+                        >
+                          <XIcon size={13} aria-hidden /> Clear
+                        </button>
+                      )}
+                    </div>
+
+                    <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-text-muted">
+                      Status
+                    </p>
+                    <div className="mb-3 space-y-0.5">
+                      {(["Active", "Inactive", "Suspended"] as ClientStatus[]).map(
+                        (s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => toggleStatus(s)}
+                            className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm text-text-primary hover:bg-surface-muted"
+                          >
+                            {s}
+                            {statusFilter.has(s) && (
+                              <Check size={15} className="text-primary" aria-hidden />
+                            )}
+                          </button>
+                        ),
+                      )}
+                    </div>
+
+                    {showPersonalColumns && (
+                      <>
+                        <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-text-muted">
+                          Gender
+                        </p>
+                        <div className="space-y-0.5">
+                          {(["Male", "Female"] as const).map((g) => (
+                            <button
+                              key={g}
+                              type="button"
+                              onClick={() => toggleGender(g)}
+                              className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm text-text-primary hover:bg-surface-muted"
+                            >
+                              {g}
+                              {genderFilter.has(g) && (
+                                <Check size={15} className="text-primary" aria-hidden />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3.5 text-sm text-text-secondary transition-colors hover:bg-surface-muted"
