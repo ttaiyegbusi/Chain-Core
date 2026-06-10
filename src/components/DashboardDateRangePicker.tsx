@@ -149,7 +149,7 @@ export default function DashboardDateRangePicker({
       </button>
 
       {quickOpen && (
-        <div className="absolute right-[272px] top-[calc(100%+8px)] z-30 w-44 overflow-hidden rounded-xl border border-border bg-white p-1 shadow-[0_16px_40px_rgba(17,24,39,0.12)]">
+        <div className="absolute right-[272px] top-[calc(100%+8px)] z-30 w-44 overflow-hidden rounded-xl border border-border bg-white p-1 ">
           {QUICK_RANGES.map((range) => (
             <button
               key={range}
@@ -168,7 +168,7 @@ export default function DashboardDateRangePicker({
       )}
 
       {calendarOpen && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-30 w-[360px] rounded-2xl border border-border bg-white p-4 shadow-[0_20px_48px_rgba(17,24,39,0.14)]">
+        <div className="absolute right-0 top-[calc(100%+8px)] z-30 w-[360px] rounded-2xl border border-border bg-white p-4 ">
           <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-text-primary">
             <CalendarDays size={17} aria-hidden />
             Select reporting period

@@ -13,15 +13,15 @@ import {
  * Notifications floating right-side panel.
  *
  * Matches the Figma spec exactly:
- *  - 392px wide, ~700px tall, floating with soft offset shadows
- *  - "Notifications" header + close button (square, F7F7F7 fill)
- *  - All / Unread [ N ] segmented tabs
- *  - Groups: Today / Yesterday / Last 7 days
- *  - Each row: 24px square initial avatar, name (Medium 12px),
- *    "New Comment · Design Team" meta with a tiny dot separator,
- *    body text, right-aligned timestamp
- *  - Page behind stays visible (no backdrop), same as Core AI panel.
- *  - Smooth ~420ms open/close on opacity + translate-X.
+ * - 392px wide, ~700px tall, floating with soft offset s
+ * - "Notifications" header + close button (square, F7F7F7 fill)
+ * - All / Unread [ N ] segmented tabs
+ * - Groups: Today / Yesterday / Last 7 days
+ * - Each row: 24px square initial avatar, name (Medium 12px),
+ * "New Comment · Design Team" meta with a tiny dot separator,
+ * body text, right-aligned timestamp
+ * - Page behind stays visible (no backdrop), same as Core AI panel.
+ * - Smooth ~420ms open/close on opacity + translate-X.
  */
 export default function NotificationsPanel() {
   const { isOpen, close } = useNotifications();
@@ -68,8 +68,8 @@ export default function NotificationsPanel() {
       className={[
         "fixed right-5 top-[86px] z-40 flex h-[700px] w-[392px] max-w-[calc(100vw-40px)] flex-col",
         "rounded-[12px] border border-[#EBEBEB] bg-white",
-        // The two soft offset shadows from the spec.
-        "shadow-[0px_-1.944px_65.139px_0px_rgba(0,0,0,0.07),0px_-0.243px_8.156px_0px_rgba(0,0,0,0.04)]",
+        // The two soft offset s from the spec.
+        "",
         "transition-[opacity,transform] duration-[420ms]",
         visible
           ? "translate-x-0 opacity-100"

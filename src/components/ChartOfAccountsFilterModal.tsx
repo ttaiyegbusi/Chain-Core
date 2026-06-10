@@ -70,7 +70,7 @@ export default function ChartOfAccountsFilterModal({
       {/* Modal */}
       <div
         ref={modalRef}
-        className="filter-modal-in fixed left-1/2 top-1/2 z-40 w-96 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 shadow-[0_20px_60px_rgba(17,24,39,0.18)] ring-1 ring-border"
+        className="filter-modal-in fixed left-1/2 top-1/2 z-40 w-96 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 ring-1 ring-border"
         role="dialog"
         aria-modal="true"
         aria-labelledby="filter-title"

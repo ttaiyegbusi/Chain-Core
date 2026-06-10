@@ -65,7 +65,7 @@ export default function SuccessModal({
       {/* Card */}
       <div
         ref={cardRef}
-        className="relative z-10 w-[420px] max-w-[92vw] rounded-2xl bg-white px-8 pb-8 pt-7 shadow-[0_20px_60px_rgba(17,24,39,0.25)]"
+        className="relative z-10 w-[420px] max-w-[92vw] rounded-2xl bg-white px-8 pb-8 pt-7 "
       >
         <button
           type="button"

@@ -45,7 +45,7 @@ function StatCard({ stat }: { stat: OverviewStat }) {
   const Icon = iconMap[stat.icon];
 
   return (
-    <article className="min-h-[148px] rounded-[20px] border border-border-strong bg-white px-6 py-5 shadow-[0_1px_2px_rgba(16,24,40,0.02)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(16,24,40,0.05)]">
+    <article className="min-h-[148px] rounded-[20px] border border-border-strong bg-white px-6 py-5 transition-all duration-300 hover:-translate-y-0.5 ">
       <div className="flex items-start justify-between gap-4">
         <p className={`text-sm font-semibold leading-5 ${toneClass}`}>
           {arrow} {stat.percent}% {label}

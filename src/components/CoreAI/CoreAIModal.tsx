@@ -132,7 +132,7 @@ export default function CoreAIPanel() {
         transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
       }}
       className={[
-        "fixed z-40 flex flex-col overflow-hidden rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.18)] ring-1 ring-border",
+        "fixed z-40 flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-border",
         // animate size + position changes smoothly
         "transition-[width,height,top,bottom,left,right,transform,opacity] duration-[420ms]",
         expanded
@@ -269,8 +269,8 @@ function HeaderIcon({
  * Items: Attachments, Copy transcript, Clear conversation, Settings.
  *
  * Disabled states:
- *  - "Copy transcript" and "Clear conversation" only enabled when there's
- *    an active conversation (hasMessages).
+ * - "Copy transcript" and "Clear conversation" only enabled when there's
+ * an active conversation (hasMessages).
  */
 function MoreMenu({
   hasMessages,
@@ -290,7 +290,7 @@ function MoreMenu({
   return (
     <div
       role="menu"
-      className="absolute right-0 top-[calc(100%+6px)] z-50 w-[208px] origin-top-right overflow-hidden rounded-xl border border-[#EBEBEB] bg-white py-1 shadow-[0_12px_32px_rgba(17,24,39,0.12),0_2px_6px_rgba(17,24,39,0.05)] coreai-menu-in"
+      className="absolute right-0 top-[calc(100%+6px)] z-50 w-[208px] origin-top-right overflow-hidden rounded-xl border border-[#EBEBEB] bg-white py-1 coreai-menu-in"
     >
       <MenuItem
         icon={<Paperclip size={14} aria-hidden />}

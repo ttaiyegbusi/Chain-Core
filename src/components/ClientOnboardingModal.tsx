@@ -134,7 +134,7 @@ function UploadBox({ label, value }: { label: string; value?: string }) {
 function NestedSheet({ title, onClose, kind }: { title: string; onClose: () => void; kind: "employer" | "business" | "kin" }) {
   return (
     <div className="fixed inset-0 z-[70] bg-black/30">
-      <div className="absolute right-8 top-4 flex h-[calc(100vh-32px)] w-[860px] flex-col overflow-hidden rounded-lg bg-white shadow-[0_24px_80px_rgba(17,24,39,0.18)]">
+      <div className="absolute right-8 top-4 flex h-[calc(100vh-32px)] w-[860px] flex-col overflow-hidden rounded-lg bg-white ">
         <header className="flex h-[68px] items-center justify-between border-b border-border px-7">
           <h3 className="text-base font-semibold text-text-primary">{title}</h3>
           <button onClick={onClose} className="focus-ring rounded-md p-1 text-text-secondary hover:bg-surface-muted" aria-label="Close">
@@ -340,7 +340,7 @@ export default function ClientOnboardingModal({ type, onClose }: Props) {
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/35">
-        <div className="absolute right-8 top-4 flex h-[calc(100vh-32px)] w-[980px] max-w-[calc(100vw-64px)] overflow-hidden rounded-lg bg-white shadow-[0_24px_80px_rgba(17,24,39,0.18)] animate-[modalIn_180ms_ease-out]">
+        <div className="absolute right-8 top-4 flex h-[calc(100vh-32px)] w-[980px] max-w-[calc(100vw-64px)] overflow-hidden rounded-lg bg-white animate-[modalIn_180ms_ease-out]">
           <aside className="w-[300px] shrink-0 bg-surface-muted/70">
             <div className="flex h-[68px] items-center border-b border-border px-7">
               <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
@@ -355,7 +355,7 @@ export default function ClientOnboardingModal({ type, onClose }: Props) {
                       key={s.id}
                       type="button"
                       onClick={() => setStep(s.id)}
-                      className={`focus-ring flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm transition-colors ${active ? "bg-white text-text-primary shadow-sm" : "text-text-secondary hover:bg-white/70"}`}
+                      className={`focus-ring flex h-10 w-full items-center gap-3 rounded-md px-3 text-left text-sm transition-colors ${active ? "bg-white text-text-primary " : "text-text-secondary hover:bg-white/70"}`}
                     >
                       <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${active ? "bg-primary text-white" : "bg-white text-text-secondary"}`}>{s.id}</span>
                       <span className="flex-1">{s.title}</span>

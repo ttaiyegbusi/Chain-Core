@@ -179,7 +179,7 @@ export default function GeneralLedgerReportPage() {
               </button>
 
               {filterOpen && (
-                <div className="absolute right-0 top-full z-40 mt-2 w-80 rounded-lg border border-border bg-white p-4 shadow-lg">
+                <div className="absolute right-0 top-full z-40 mt-2 w-80 rounded-lg border border-border bg-white p-4 ">
                   <div className="space-y-4">
                     {/* GL Code filter */}
                     <div>

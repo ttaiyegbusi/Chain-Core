@@ -104,7 +104,7 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
         </h3>
         <button
           type="button"
-          className="focus-ring flex h-8 items-center gap-1 rounded-lg border border-[#E3E7EC] bg-white px-2.5 text-[11px] font-medium text-[#15181E] shadow-[0_1px_2px_rgba(16,24,40,0.03)]"
+          className="focus-ring flex h-8 items-center gap-1 rounded-lg border border-[#E3E7EC] bg-white px-2.5 text-[11px] font-medium text-[#15181E] "
         >
           {chart.period || "This year"}
           <ChevronDown size={13} className="text-[#8A93A3]" aria-hidden />
@@ -112,7 +112,7 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
       </div>
 
       {/* Range tabs — reslice the historical data */}
-      <div className="mb-3 inline-flex rounded-lg border border-[#E6EAF0] bg-white p-1 shadow-[0_1px_2px_rgba(16,24,40,0.02)]">
+      <div className="mb-3 inline-flex rounded-lg border border-[#E6EAF0] bg-white p-1 ">
         {RANGE_TABS.map((r) => {
           const active = range === r;
           return (
@@ -124,7 +124,7 @@ export default function LineChartCard({ chart }: { chart: ChartLineResponse }) {
               className={[
                 "focus-ring h-7 rounded-md px-3 text-[11px] font-medium tracking-[-0.02em] transition-colors",
                 active
-                  ? "bg-[#F2F4F7] text-[#15181E] shadow-[0_1px_1px_rgba(16,24,40,0.03)]"
+                  ? "bg-[#F2F4F7] text-[#15181E] "
                   : "text-[#8A93A3] hover:bg-[#F7F8FA] hover:text-[#4B5563]",
               ].join(" ")}
             >

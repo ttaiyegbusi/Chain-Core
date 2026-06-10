@@ -39,7 +39,7 @@ export default function FeatureComingSoon({
 
         <Link
           href={buttonHref}
-          className="focus-ring mt-6 inline-flex h-11 items-center justify-center rounded-md bg-primary px-7 text-sm font-medium text-white shadow-[0_10px_24px_rgba(51,92,255,0.20)] transition-colors hover:bg-primary-hover"
+          className="focus-ring mt-6 inline-flex h-11 items-center justify-center rounded-md bg-primary px-7 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
         >
           {buttonLabel}
         </Link>

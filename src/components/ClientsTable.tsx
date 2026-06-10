@@ -143,7 +143,7 @@ export default function ClientsTable({
                     <MoreVertical size={16} aria-hidden />
                   </button>
                   {openMenu === c.id && (
-                    <div className="absolute right-5 top-full z-10 mt-1 w-40 rounded-lg border border-border bg-white py-1 shadow-[0_10px_30px_rgba(17,24,39,0.12)]">
+                    <div className="absolute right-5 top-full z-10 mt-1 w-40 rounded-lg border border-border bg-white py-1 ">
                       <Link
                         href={`${detailBasePath}/${c.id}`}
                         onClick={() => setOpenMenu(null)}

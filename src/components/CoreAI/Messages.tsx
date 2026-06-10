@@ -157,7 +157,7 @@ function FollowUpActions({
           key={prompt}
           type="button"
           onClick={() => onSelect(prompt)}
-          className="focus-ring rounded-full border border-[#E6EAF0] bg-white px-3 py-1.5 text-[11px] font-medium text-[#4B5563] shadow-[0_1px_2px_rgba(16,24,40,0.03)] transition-colors hover:bg-[#F7F8FA] hover:text-[#15181E]"
+          className="focus-ring rounded-full border border-[#E6EAF0] bg-white px-3 py-1.5 text-[11px] font-medium text-[#4B5563] transition-colors hover:bg-[#F7F8FA] hover:text-[#15181E]"
         >
           {prompt}
         </button>

@@ -104,7 +104,7 @@ export default function BalanceSheetFilterModal({
 
       <div
         ref={cardRef}
-        className="relative z-10 flex max-h-[90vh] w-[820px] max-w-[95vw] flex-col rounded-2xl bg-white shadow-[0_20px_60px_rgba(17,24,39,0.25)]"
+        className="relative z-10 flex max-h-[90vh] w-[820px] max-w-[95vw] flex-col rounded-2xl bg-white "
       >
         {/* Header */}
         <div className="flex items-start justify-between px-8 pt-7">

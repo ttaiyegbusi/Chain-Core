@@ -189,7 +189,7 @@ export default function ClientsListPage({
                 {createOpen && (
                   <div
                     role="menu"
-                    className="absolute right-0 top-[calc(100%+6px)] z-20 w-[200px] overflow-hidden rounded-lg border border-border bg-white py-1 shadow-[0_12px_32px_rgba(17,24,39,0.12)]"
+                    className="absolute right-0 top-[calc(100%+6px)] z-20 w-[200px] overflow-hidden rounded-lg border border-border bg-white py-1 "
                   >
                     {CREATE_OPTIONS.map((opt) => {
                       const Icon = opt.icon;

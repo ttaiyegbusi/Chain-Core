@@ -206,7 +206,7 @@ export default function JournalTable({
                     {openMenu === e.id && (
                       <>
                         <div className="fixed inset-0 z-10" onClick={() => setOpenMenu(null)} aria-hidden />
-                        <div role="menu" className="absolute right-4 top-12 z-20 w-44 overflow-hidden rounded-md border border-border bg-white py-1 text-left shadow-[0_8px_24px_rgba(17,24,39,0.12)]">
+                        <div role="menu" className="absolute right-4 top-12 z-20 w-44 overflow-hidden rounded-md border border-border bg-white py-1 text-left ">
                           {["View entry", "Edit entry", "Reverse entry", "View transaction"].map((label) => (
                             <button key={label} type="button" role="menuitem" onClick={() => setOpenMenu(null)} className="block w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-surface-muted">
                               {label}

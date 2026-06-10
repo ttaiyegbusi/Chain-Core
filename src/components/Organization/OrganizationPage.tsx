@@ -345,7 +345,7 @@ function LevelsCanvas({ levels, updateLevelTitle, newLevelTitle, setNewLevelTitl
   return (
     <div className="organization-grid min-h-[760px] px-10 py-10">
       <div className="mx-auto max-w-[600px] space-y-4">
-        <div className="rounded-xl border border-border bg-white p-5 shadow-[0_8px_24px_rgba(17,24,39,0.04)]">
+        <div className="rounded-xl border border-border bg-white p-5 ">
           <p className="text-sm font-semibold text-text-primary">Define node levels</p>
           <p className="mt-1 text-xs leading-5 text-text-muted">Create every operating layer before building the organization. Example: Head Office, Region, Branch, Center. You can add more levels any time.</p>
           <div className="mt-4 flex gap-2">
@@ -354,7 +354,7 @@ function LevelsCanvas({ levels, updateLevelTitle, newLevelTitle, setNewLevelTitl
           </div>
         </div>
         {levels.map((level, index) => (
-          <div key={level.id} className="relative flex items-center justify-between rounded-lg border border-border bg-white p-4 shadow-[0_8px_24px_rgba(17,24,39,0.04)]">
+          <div key={level.id} className="relative flex items-center justify-between rounded-lg border border-border bg-white p-4 ">
             <div className="flex flex-1 items-center gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">{level.order}</span>
               <div className="flex-1">
@@ -435,8 +435,8 @@ function OrgCanvas({ nodes, levels, positions, selectedNodeId, setSelectedNodeId
         </div>
       )}
       <div className="absolute bottom-4 right-4 flex items-center gap-2">
-        <button type="button" className="flex h-10 w-10 items-center justify-center rounded-md border border-border-strong bg-white text-text-secondary shadow-sm"><Maximize2 size={17} /></button>
-        <div className="flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3 text-sm text-text-primary shadow-sm"><PlusCircle size={16} />100%<MinusCircle size={16} /></div>
+        <button type="button" className="flex h-10 w-10 items-center justify-center rounded-md border border-border-strong bg-white text-text-secondary "><Maximize2 size={17} /></button>
+        <div className="flex h-10 items-center gap-2 rounded-md border border-border-strong bg-white px-3 text-sm text-text-primary "><PlusCircle size={16} />100%<MinusCircle size={16} /></div>
       </div>
     </div>
   );
@@ -449,7 +449,7 @@ function EmptyOrganizationState({ onCreate }: { onCreate: () => void }) {
         <img src="/Illustration.svg" alt="No node level" className="mb-6 h-[118px] w-[150px] object-contain" />
         <h2 className="text-lg font-semibold text-text-primary">No Node Level</h2>
         <p className="mt-2 max-w-[260px] text-sm leading-5 text-text-secondary">You have not added any node level to your organization structure yet.</p>
-        <button onClick={onCreate} type="button" className="focus-ring mt-6 inline-flex h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-white shadow-[0_10px_24px_rgba(49,87,246,0.22)] hover:bg-primary-hover">Add Node Level</button>
+        <button onClick={onCreate} type="button" className="focus-ring mt-6 inline-flex h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-white hover:bg-primary-hover">Add Node Level</button>
       </div>
     </div>
   );
@@ -459,9 +459,9 @@ function DraggableNodeCard({ node, level, selected, dragging, onSelect, onOpenDe
   return (
     <div className="group relative select-none">
       <div role="button" tabIndex={0} onClick={onSelect} onDoubleClick={onOpenDetails} className={[
-        "relative flex h-[70px] w-[270px] items-center justify-center rounded-lg border bg-white px-6 text-center shadow-[0_8px_24px_rgba(17,24,39,0.04)] transition-[border-color,background-color,box-shadow,transform] outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
-        selected ? "border-primary bg-[#EEF3FF] shadow-[0_12px_32px_rgba(49,87,246,0.12)]" : "border-border hover:border-primary/50",
-        dragging ? "scale-[1.015] cursor-grabbing shadow-[0_18px_46px_rgba(17,24,39,0.12)]" : "cursor-grab",
+        "relative flex h-[70px] w-[270px] items-center justify-center rounded-lg border bg-white px-6 text-center transition-[border-color,background-color,box-,transform] outline-none focus-visible:ring-2 focus-visible:ring-primary/25",
+        selected ? "border-primary bg-[#EEF3FF] " : "border-border hover:border-primary/50",
+        dragging ? "scale-[1.015] cursor-grabbing " : "cursor-grab",
       ].join(" ")}>
         <span className="absolute right-3 top-3 rounded-full bg-[#EEF3FF] px-2 py-0.5 text-[10px] font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">{level?.title || "Node"}</span>
         <span className="flex flex-col items-center justify-center">
@@ -469,9 +469,9 @@ function DraggableNodeCard({ node, level, selected, dragging, onSelect, onOpenDe
           <span className="mt-1 max-w-[210px] truncate text-xs text-text-secondary">{node.description}</span>
         </span>
       </div>
-      <button data-node-action onClick={onAddLeft} type="button" aria-label="Add node to left" className="absolute -left-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
-      <button data-node-action onClick={onAddRight} type="button" aria-label="Add node to right" className="absolute -right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
-      <button data-node-action onClick={onAddChild} type="button" aria-label="Add child node" className="absolute -bottom-9 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 shadow-sm transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button data-node-action onClick={onAddLeft} type="button" aria-label="Add node to left" className="absolute -left-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button data-node-action onClick={onAddRight} type="button" aria-label="Add node to right" className="absolute -right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
+      <button data-node-action onClick={onAddChild} type="button" aria-label="Add child node" className="absolute -bottom-9 left-1/2 flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-full border border-primary bg-white text-primary opacity-0 transition-opacity group-hover:opacity-100"><Plus size={14} /></button>
     </div>
   );
 }
@@ -519,7 +519,7 @@ function NodeSheet({ title, action, draft, setDraft, levels, onClose, onSubmit, 
   const update = (key: keyof NodeDraft, value: string) => setDraft((prev) => ({ ...prev, [key]: value }));
   return (
     <div className="fixed inset-0 z-50 bg-black/35">
-      <div className="ml-auto flex h-full w-[620px] flex-col bg-white shadow-[0_20px_80px_rgba(17,24,39,0.18)]">
+      <div className="ml-auto flex h-full w-[620px] flex-col bg-white ">
         <div className="flex h-[70px] items-center justify-between border-b border-border px-6">
           <div>
             <h2 className="text-lg font-semibold text-text-primary">{title}</h2>

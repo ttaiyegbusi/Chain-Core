@@ -175,7 +175,7 @@ export default function ChartOfAccountsTable({
                       />
                       <div
                         role="menu"
-                        className="absolute right-4 top-12 z-20 w-44 overflow-hidden rounded-md border border-border bg-white py-1 text-left shadow-[0_8px_24px_rgba(17,24,39,0.12)]"
+                        className="absolute right-4 top-12 z-20 w-44 overflow-hidden rounded-md border border-border bg-white py-1 text-left "
                       >
                         {[
                           { label: "View GL", action: () => router.push(`/accounting/charts-of-account/${account.id}`) },

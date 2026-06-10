@@ -11,20 +11,20 @@ import {
   Settings,
   PanelLeftClose,
 } from "lucide-react";
-import { useMemo, useLayoutEffect, useState } from "react";
+import { useMemo, useLayoutEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Logo from "./Logo";
 
 /* ─── Layout constants ────────────────────────────────────────────────────── */
 const COLLAPSED_W = 72;
-const EXPANDED_W  = 280;
-const SECTION_H   = 28;
-const ITEM_H      = 48;
+const EXPANDED_W = 248;
+const SECTION_H = 28;
+const ITEM_H = 48;
 const NAV_PAD_TOP = 6;
-const HEADER_H    = 72; // height of the header + 1px divider
+const HEADER_H = 72; // height of the header + 1px divider
 
-const EASE_OUT   = "cubic-bezier(0.3, 0.8, 0.4, 1)";
+const EASE_OUT = "cubic-bezier(0.3, 0.8, 0.4, 1)";
 const EASE_INOUT = "cubic-bezier(0.4, 0, 0.2, 1)";
 
 /* ─── Nav structure ───────────────────────────────────────────────────────── */
@@ -49,9 +49,9 @@ const SECTIONS: NavSection[] = [
     label: "Menu",
     showDivider: false,
     items: [
-      { key: "dashboard",    label: "Dashboard",    icon: Home,   href: "/" },
+      { key: "dashboard", label: "Dashboard", icon: Home, href: "/" },
       { key: "transactions", label: "Transactions", icon: Layers, href: "/transactions" },
-      { key: "task",         label: "Task",         icon: Info,   href: "/task" },
+      { key: "task", label: "Task", icon: Info, href: "/task" },
     ],
   },
   {
@@ -66,8 +66,8 @@ const SECTIONS: NavSection[] = [
         href: "/clients/individual",
         match: (p) => p.startsWith("/clients"),
       },
-      { key: "accounts",   label: "Accounts",   icon: CreditCard, href: "/accounts" },
-      { key: "reports",    label: "Reports",    icon: FileText,   href: "/reports" },
+      { key: "accounts", label: "Accounts", icon: CreditCard, href: "/accounts" },
+      { key: "reports", label: "Reports", icon: FileText, href: "/reports" },
       {
         key: "accounting",
         label: "Accounting",
@@ -89,8 +89,8 @@ const SECTIONS: NavSection[] = [
     label: "Settings",
     showDivider: true,
     items: [
-      { key: "settings-reports", label: "Reports",        icon: FileText, href: "/settings/reports" },
-      { key: "settings-admin",   label: "Administration", icon: Settings, href: "/settings/administration" },
+      { key: "settings-reports", label: "Reports", icon: FileText, href: "/settings/reports" },
+      { key: "settings-admin", label: "Administration", icon: Settings, href: "/settings/administration" },
     ],
   },
 ];
@@ -111,7 +111,7 @@ const ITEM_TOP: Record<string, number> = (() => {
   return map;
 })();
 
-function findActiveKey(pathname: string): string {
+function findActiveKey(pathname: string): string | null {
   for (const section of SECTIONS) {
     for (const item of section.items) {
       if (item.match ? item.match(pathname) : item.href === pathname) {
@@ -119,12 +119,12 @@ function findActiveKey(pathname: string): string {
       }
     }
   }
-  return "dashboard";
+  return null;
 }
 
 /* ─── Component ───────────────────────────────────────────────────────────── */
 export default function PrimaryRail() {
-  const pathname  = usePathname() || "/";
+  const pathname = usePathname() || "/";
 
   /**
    * null = not yet hydrated (SSR / initial client render before useLayoutEffect).
@@ -142,6 +142,18 @@ export default function PrimaryRail() {
   const [tooltip, setTooltip] = useState<{ label: string; y: number } | null>(null);
 
   const activeKey = useMemo(() => findActiveKey(pathname), [pathname]);
+
+  /**
+   * When the route matches a nav item, the indicator sits on it. When it does
+   * not (e.g. an undeveloped route showing the not-found page), keep the
+   * indicator at its LAST position and fade it out — so it never jumps up to a
+   * fallback item. lastTopRef remembers where it last was.
+   */
+  const hasActive = activeKey !== null;
+  const lastTopRef = useRef<number>(NAV_PAD_TOP);
+  if (hasActive) {
+    lastTopRef.current = ITEM_TOP[activeKey as string] ?? NAV_PAD_TOP;
+  }
 
   useLayoutEffect(() => {
     const saved = localStorage.getItem("chaincore-primary-nav-expanded") === "true";
@@ -162,8 +174,8 @@ export default function PrimaryRail() {
     if (expanded) setTooltip(null);
   }, [expanded]);
 
-  const width        = expanded ? EXPANDED_W : COLLAPSED_W;
-  const indicatorTop = ITEM_TOP[activeKey] ?? NAV_PAD_TOP;
+  const width = expanded ? EXPANDED_W : COLLAPSED_W;
+  const indicatorTop = lastTopRef.current;
 
   /**
    * Placeholder: rendered during SSR and the brief pre-paint client tick.
@@ -207,12 +219,12 @@ export default function PrimaryRail() {
           aria-hidden
           className="truncate text-sm font-normal text-primary"
           style={{
-            opacity:       expanded ? 1 : 0,
-            maxWidth:      expanded ? "150px" : "0px",
-            overflow:      "hidden",
-            whiteSpace:    "nowrap",
+            opacity: expanded ? 1 : 0,
+            maxWidth: expanded ? "150px" : "0px",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
             pointerEvents: "none",
-            transition:    `opacity ${expanded ? "200ms 160ms" : "100ms 0ms"}, max-width 450ms ${EASE_OUT}`,
+            transition: `opacity ${expanded ? "200ms 160ms" : "100ms 0ms"}, max-width 450ms ${EASE_OUT}`,
           }}
         >
           ChainCore
@@ -224,9 +236,9 @@ export default function PrimaryRail() {
           onClick={() => setExpanded(false)}
           className="focus-ring absolute right-3 flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-muted hover:text-text-primary"
           style={{
-            opacity:       expanded ? 1 : 0,
+            opacity: expanded ? 1 : 0,
             pointerEvents: expanded ? "auto" : "none",
-            transition:    `opacity ${expanded ? "200ms 220ms" : "100ms 0ms"}`,
+            transition: `opacity ${expanded ? "200ms 220ms" : "100ms 0ms"}`,
           }}
         >
           <PanelLeftClose size={18} strokeWidth={1.9} aria-hidden />
@@ -247,12 +259,13 @@ export default function PrimaryRail() {
           aria-hidden
           className="pointer-events-none absolute z-0 bg-primary"
           style={{
-            top:          indicatorTop,
-            height:       ITEM_H,
-            left:         "10px",
-            right:        "10px",
+            top: indicatorTop,
+            height: ITEM_H,
+            left: "10px",
+            right: "10px",
+            opacity: hasActive ? 1 : 0,
             borderRadius: expanded ? "14px" : "18px",
-            transition:   `top 380ms ${EASE_INOUT}, border-radius 450ms ${EASE_OUT}`,
+            transition: `top 380ms ${EASE_INOUT}, opacity 200ms ${EASE_OUT}, border-radius 450ms ${EASE_OUT}`,
           }}
         />
 
@@ -266,10 +279,10 @@ export default function PrimaryRail() {
               <span
                 className="absolute inset-y-0 left-3 flex items-center text-[10px] font-normal uppercase tracking-widest text-text-secondary"
                 style={{
-                  opacity:       expanded ? 1 : 0,
+                  opacity: expanded ? 1 : 0,
                   pointerEvents: "none",
-                  whiteSpace:    "nowrap",
-                  transition:    `opacity ${expanded ? "160ms 130ms" : "100ms 0ms"}`,
+                  whiteSpace: "nowrap",
+                  transition: `opacity ${expanded ? "160ms 130ms" : "100ms 0ms"}`,
                 }}
               >
                 {section.label}
@@ -279,7 +292,7 @@ export default function PrimaryRail() {
                 <div
                   className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border"
                   style={{
-                    opacity:    expanded ? 0 : 1,
+                    opacity: expanded ? 0 : 1,
                     transition: `opacity ${expanded ? "100ms 0ms" : "160ms 130ms"}`,
                   }}
                 />
@@ -302,13 +315,13 @@ export default function PrimaryRail() {
                   prefetch
                   className="focus-ring group relative z-10 flex items-center"
                   style={{
-                    height:         ITEM_H,
-                    margin:         "0 10px",
-                    padding:        expanded ? "0 10px" : "0",
+                    height: ITEM_H,
+                    margin: "0 10px",
+                    padding: expanded ? "0 10px" : "0",
                     justifyContent: expanded ? "flex-start" : "center",
-                    gap:            expanded ? "12px" : "0",
-                    borderRadius:   expanded ? "14px" : "18px",
-                    transition:     [
+                    gap: expanded ? "12px" : "0",
+                    borderRadius: expanded ? "14px" : "18px",
+                    transition: [
                       `padding 450ms ${EASE_OUT}`,
                       `gap 450ms ${EASE_OUT}`,
                       `border-radius 450ms ${EASE_OUT}`,
@@ -338,9 +351,9 @@ export default function PrimaryRail() {
                       active ? "text-white" : "text-text-secondary group-hover:text-text-primary"
                     }`}
                     style={{
-                      opacity:    expanded ? 1 : 0,
-                      maxWidth:   expanded ? "160px" : "0px",
-                      overflow:   "hidden",
+                      opacity: expanded ? 1 : 0,
+                      maxWidth: expanded ? "160px" : "0px",
+                      overflow: "hidden",
                       whiteSpace: "nowrap",
                       transition: `opacity ${expanded ? "200ms 100ms" : "100ms 0ms"}, max-width 450ms ${EASE_OUT}`,
                     }}
@@ -361,10 +374,10 @@ export default function PrimaryRail() {
       */}
       {!expanded && tooltip && (
         <span
-          className="pointer-events-none fixed z-50 whitespace-nowrap rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-normal text-text-primary shadow-sm"
+          className="pointer-events-none fixed z-50 whitespace-nowrap rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-normal text-text-primary "
           style={{
-            left:      COLLAPSED_W + 8,
-            top:       tooltip.y,
+            left: COLLAPSED_W + 8,
+            top: tooltip.y,
             transform: "translateY(-50%)",
           }}
         >

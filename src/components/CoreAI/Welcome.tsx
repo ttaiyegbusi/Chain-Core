@@ -8,16 +8,16 @@ import { SUGGESTED_PROMPTS } from "./types";
  * Core AI welcome / empty state.
  *
  * Matches Figma node 967-44800:
- *  - Layered, shadowed brand mark (60px outer wrap → white inset with soft
- *    shadow → #F3F3F3 rounded square → the brand circle)
- *  - Two-line greeting: "Hello Temitope!" (black, Geist Medium 18px) and
- *    "This is Core Ai, how can I help today?" (muted #868C98, same size)
- *  - "Suggested Prompts" label above the chips
- *  - Each chip is its own #F7F7F7 pill, sized to its content, with the
- *    sparkle icon inline; they wrap to a second row naturally.
- *  - Layout uses justify-between so the greeting sits in the top of the
- *    available space and the chips group anchors to the bottom (just above
- *    the composer, which is rendered by the parent).
+ * - Layered, ed brand mark (60px outer wrap → white inset with soft
+ * → #F3F3F3 rounded square → the brand circle)
+ * - Two-line greeting: "Hello Temitope!" (black, Geist Medium 18px) and
+ * "This is Core Ai, how can I help today?" (muted #868C98, same size)
+ * - "Suggested Prompts" label above the chips
+ * - Each chip is its own #F7F7F7 pill, sized to its content, with the
+ * sparkle icon inline; they wrap to a second row naturally.
+ * - Layout uses justify-between so the greeting sits in the top of the
+ * available space and the chips group anchors to the bottom (just above
+ * the composer, which is rendered by the parent).
  */
 export default function Welcome({
   onPromptClick,
@@ -68,7 +68,7 @@ export default function Welcome({
 
 /**
  * The layered brand mark from the Figma — outer 60px rounded wrap, white
- * inset card with a soft drop shadow, a #F3F3F3 inner square, and the
+ * inset card with a soft drop , a #F3F3F3 inner square, and the
  * ChainCore brand circle floating inside.
  */
 function BrandMark() {

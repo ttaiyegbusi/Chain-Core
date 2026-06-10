@@ -25,16 +25,16 @@ import {
  * Global Search modal.
  *
  * Faithful to Figma node 971-46925, with banking-context content:
- *  - 600×~750 floating panel, centered, no backdrop (per project convention)
- *  - Smooth ~420ms open/close on opacity + translate-Y
- *  - Search input at top with magnifying-glass icon
- *  - Four filter chips (Contact / Documents / Links / Branches) — clicking
- *    one filters the visible sections; clicking again restores all
- *  - Result sections: Contact, Documents, Links, Branches — each with the
- *    [ N ] count, the row icon, two-line content, right-side × close action
- *  - Live filtering: as the user types, every result re-filters
- *  - Footer: "Open Search Page"
- *  - Esc closes
+ * - 600×~750 floating panel, centered, no backdrop (per project convention)
+ * - Smooth ~420ms open/close on opacity + translate-Y
+ * - Search input at top with magnifying-glass icon
+ * - Four filter chips (Contact / Documents / Links / Branches) — clicking
+ * one filters the visible sections; clicking again restores all
+ * - Result sections: Contact, Documents, Links, Branches — each with the
+ * [ N ] count, the row icon, two-line content, right-side × close action
+ * - Live filtering: as the user types, every result re-filters
+ * - Footer: "Open Search Page"
+ * - Esc closes
  */
 
 const ALL_FILTERS = ["Contact", "Documents", "Links", "Branches"] as const;
@@ -151,7 +151,7 @@ export default function SearchModal() {
       className={[
         "fixed left-1/2 top-[85px] z-40 -translate-x-1/2",
         "flex w-[600px] max-w-[calc(100vw-40px)] flex-col rounded-2xl bg-white",
-        "shadow-[0px_24px_56px_rgba(17,24,39,0.18),0px_2px_8px_rgba(17,24,39,0.05)] ring-1 ring-[#EBEBEB]",
+        " ring-1 ring-[#EBEBEB]",
         "transition-[opacity,transform] duration-[420ms]",
         visible
           ? "translate-y-0 opacity-100"
