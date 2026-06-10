@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, MoreVertical } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import { Breadcrumbs } from "@/components/Common";
 import {
   TextInput,
@@ -52,7 +51,6 @@ export default function CreateGLPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
 
       {/* Content offset: just the 66px rail (sidebar hidden on create) */}
       <main className="ml-[66px] pb-[90px]">

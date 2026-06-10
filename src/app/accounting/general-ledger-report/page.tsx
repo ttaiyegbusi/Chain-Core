@@ -7,7 +7,6 @@ import {
   Upload,
   ChevronDown,
 } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import GeneralLedgerTable from "@/components/GeneralLedgerTable";
@@ -101,7 +100,6 @@ export default function GeneralLedgerReportPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <AccountingSidebar />
 
       <main className="ml-[calc(var(--rail-width)+250px)]">

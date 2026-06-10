@@ -6,6 +6,7 @@ import { NotificationsProvider } from "@/components/Notifications/NotificationsP
 import NotificationsPanel from "@/components/Notifications/NotificationsPanel";
 import { SearchProvider } from "@/components/Search/SearchProvider";
 import SearchModal from "@/components/Search/SearchModal";
+import PrimaryRail from "@/components/PrimaryRail";
 
 export const metadata: Metadata = {
   title: "ChainCore — Accounting",
@@ -20,9 +21,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        {/*
+          Reads --rail-width from localStorage before React hydrates.
+          This prevents any layout flash on first load — the correct
+          width is applied before the browser paints the first frame.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var _e=localStorage.getItem('chaincore-primary-nav-expanded')==='true';document.documentElement.style.setProperty('--rail-width',_e?'280px':'72px')}catch(_){}`,
+          }}
+        />
         <CoreAIProvider>
           <NotificationsProvider>
             <SearchProvider>
+              <PrimaryRail />
               {children}
               <CoreAIModal />
               <NotificationsPanel />

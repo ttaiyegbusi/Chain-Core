@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, Upload } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import BalanceSheetTable from "@/components/BalanceSheetTable";
@@ -83,7 +82,6 @@ export default function IncomeExpensesPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
       <main className="ml-[calc(var(--rail-width)+250px)]">

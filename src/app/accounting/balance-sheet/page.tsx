@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, Upload } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
 import { Breadcrumbs } from "@/components/Common";
 import GlobalHeader from "@/components/GlobalHeader";
@@ -93,7 +92,6 @@ export default function BalanceSheetPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
       <main className="ml-[calc(var(--rail-width)+250px)]">

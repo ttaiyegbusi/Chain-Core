@@ -3,7 +3,6 @@
 import { Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, Upload, Plus } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
 import { Breadcrumbs } from "@/components/Common";
 import GlobalHeader from "@/components/GlobalHeader";
@@ -55,7 +54,6 @@ function JournalPageInner() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
       <main className="ml-[calc(var(--rail-width)+250px)]">

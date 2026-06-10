@@ -9,7 +9,6 @@ import {
   Calendar,
   Info,
 } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
 import { Breadcrumbs } from "@/components/Common";
 import { SectionAccordion } from "@/components/FormControls";
@@ -78,7 +77,6 @@ export default function CreateManualJournalPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <AccountingSidebar menuLabel="SUB MENU" />
 
       <main className="ml-[calc(var(--rail-width)+250px)] pb-16">

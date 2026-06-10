@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { CalendarDays, Plus, Trash2 } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import OrganizationSidebar from "@/components/Organization/OrganizationSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import { Checkbox, SelectInput, TextInput } from "@/components/FormControls";
@@ -230,7 +229,6 @@ export default function OrganizationInfoPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <OrganizationSidebar />
       <main className="ml-[calc(var(--rail-width)+250px)]">
         <GlobalHeader title="Organization" crumbs={[{ label: "Organization" }, { label: "Organization Information" }]} />

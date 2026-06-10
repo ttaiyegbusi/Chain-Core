@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, Upload, ChevronDown } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import BalanceSheetTable from "@/components/BalanceSheetTable";
@@ -80,7 +79,6 @@ export default function ProvisionalsReportPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <AccountingSidebar />
 
       <main className="ml-[calc(var(--rail-width)+250px)]">

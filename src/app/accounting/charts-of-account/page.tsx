@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import PrimaryRail from "@/components/PrimaryRail";
 import AccountingSidebar from "@/components/AccountingSidebar";
 import { Breadcrumbs } from "@/components/Common";
 import GlobalHeader from "@/components/GlobalHeader";
@@ -132,7 +131,6 @@ function ChartsOfAccountInner() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <AccountingSidebar />
 
       {/* Content offset: 66px rail + 250px sidebar */}
