@@ -19,16 +19,10 @@ import Logo from "./Logo";
 /* ─── Layout constants ────────────────────────────────────────────────────── */
 const COLLAPSED_W = 72;
 const EXPANDED_W  = 280;
-
-/**
- * SECTION_H and ITEM_H are identical in both expanded and collapsed states.
- * Section headers swap their content (text ↔ line) but never change height.
- * This means every item's Y position is a static constant — the indicator
- * never needs to recalculate or move when the rail is toggled.
- */
 const SECTION_H   = 28;
 const ITEM_H      = 48;
 const NAV_PAD_TOP = 6;
+const HEADER_H    = 72; // height of the header + 1px divider
 
 const EASE_OUT   = "cubic-bezier(0.3, 0.8, 0.4, 1)";
 const EASE_INOUT = "cubic-bezier(0.4, 0, 0.2, 1)";
@@ -45,7 +39,6 @@ interface NavItem {
 interface NavSection {
   key: string;
   label: string;
-  /** Show a divider line in collapsed state. False for the first section. */
   showDivider: boolean;
   items: NavItem[];
 }
@@ -102,6 +95,8 @@ const SECTIONS: NavSection[] = [
   },
 ];
 
+const ALL_ITEMS = SECTIONS.flatMap((s) => s.items);
+
 /* ─── Pre-computed Y positions (static — same in both rail states) ────────── */
 const ITEM_TOP: Record<string, number> = (() => {
   const map: Record<string, number> = {};
@@ -130,25 +125,24 @@ function findActiveKey(pathname: string): string {
 /* ─── Component ───────────────────────────────────────────────────────────── */
 export default function PrimaryRail() {
   const pathname  = usePathname() || "/";
-  const [expanded, setExpanded] = useState(false);
-  /**
-   * hydrated: false on SSR/first render, true after useLayoutEffect runs.
-   * While false, width transition is suppressed so restoring the saved
-   * rail state from localStorage is instant with no animation.
-   */
-  const [hydrated, setHydrated] = useState(false);
 
-  const width     = expanded ? EXPANDED_W : COLLAPSED_W;
+  /**
+   * null = not yet hydrated (SSR / initial client render before useLayoutEffect).
+   * This prevents any mismatch between the SSR state and the localStorage state.
+   * useLayoutEffect runs synchronously before the browser paints, so the user
+   * never sees the null placeholder — they only ever see the correct state.
+   */
+  const [expanded, setExpanded] = useState<boolean | null>(null);
+
+  /**
+   * Tooltip: rendered at aside level with position:fixed so it escapes the
+   * overflow:hidden nav body. We track which item is hovered and its
+   * viewport Y coordinate from the mouse event.
+   */
+  const [tooltip, setTooltip] = useState<{ label: string; y: number } | null>(null);
+
   const activeKey = useMemo(() => findActiveKey(pathname), [pathname]);
 
-  /**
-   * useLayoutEffect runs synchronously after DOM mutations, before the
-   * browser paints. Combined with the inline <script> in layout.tsx that
-   * sets --rail-width from localStorage, this means:
-   * - The CSS variable is correct before first paint (no layout flash)
-   * - The React state matches on the very first painted frame
-   * - Width transition is suppressed for this initial restore only
-   */
   useLayoutEffect(() => {
     const saved = localStorage.getItem("chaincore-primary-nav-expanded") === "true";
     setExpanded(saved);
@@ -156,17 +150,36 @@ export default function PrimaryRail() {
       "--rail-width",
       `${saved ? EXPANDED_W : COLLAPSED_W}px`,
     );
-    setHydrated(true);
   }, []);
 
-  // Keep CSS variable in sync on every toggle
+  // Keep CSS variable and localStorage in sync on every toggle
   useLayoutEffect(() => {
-    if (!hydrated) return;
-    document.documentElement.style.setProperty("--rail-width", `${width}px`);
+    if (expanded === null) return;
+    const w = expanded ? EXPANDED_W : COLLAPSED_W;
+    document.documentElement.style.setProperty("--rail-width", `${w}px`);
     localStorage.setItem("chaincore-primary-nav-expanded", String(expanded));
-  }, [expanded, width, hydrated]);
+    // Clear any stale tooltip when expanding
+    if (expanded) setTooltip(null);
+  }, [expanded]);
 
+  const width        = expanded ? EXPANDED_W : COLLAPSED_W;
   const indicatorTop = ITEM_TOP[activeKey] ?? NAV_PAD_TOP;
+
+  /**
+   * Placeholder: rendered during SSR and the brief pre-paint client tick.
+   * Uses the CSS variable width (set by the inline script in layout.tsx)
+   * so the page layout is correct even before React hydrates.
+   * This is NEVER visually seen — useLayoutEffect replaces it before paint.
+   */
+  if (expanded === null) {
+    return (
+      <aside
+        className="fixed inset-y-0 left-0 z-40 shrink-0 border-r border-border bg-white"
+        style={{ width: "var(--rail-width)" }}
+        aria-hidden
+      />
+    );
+  }
 
   return (
     <aside
@@ -175,14 +188,12 @@ export default function PrimaryRail() {
         width,
         minWidth: width,
         maxWidth: width,
-        // Suppress transition until hydrated so the localStorage restore is instant
-        transition: hydrated ? `width 450ms ${EASE_OUT}` : "none",
+        transition: `width 450ms ${EASE_OUT}`,
       }}
       aria-label="Primary navigation"
     >
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="relative flex h-[72px] shrink-0 items-center gap-3 px-4">
-        {/* Logo — clicks to expand when collapsed */}
         <button
           type="button"
           aria-label={expanded ? "ChainCore" : "Expand navigation"}
@@ -192,7 +203,6 @@ export default function PrimaryRail() {
           <Logo size={40} />
         </button>
 
-        {/* Brand name */}
         <span
           aria-hidden
           className="truncate text-sm font-normal text-primary"
@@ -208,7 +218,6 @@ export default function PrimaryRail() {
           ChainCore
         </span>
 
-        {/* Collapse button */}
         <button
           type="button"
           aria-label="Collapse navigation"
@@ -224,17 +233,12 @@ export default function PrimaryRail() {
         </button>
       </div>
 
-      {/* Divider under header */}
+      {/* Divider */}
       <div className="mx-3 h-px shrink-0 bg-border" />
 
-      {/* ── Nav body ────────────────────────────────────────────────────── */}
-      {/*
-        No overflow:hidden here — text labels control their own overflow
-        via maxWidth+overflow on the span. Removing it from the nav allows
-        the collapsed-state tooltips to render outside the rail boundary.
-      */}
+      {/* ── Nav body — overflow:hidden contains text label transitions ───── */}
       <nav
-        className="relative flex-1"
+        className="relative flex-1 overflow-hidden"
         style={{ paddingTop: NAV_PAD_TOP }}
         aria-label="Main navigation"
       >
@@ -252,15 +256,13 @@ export default function PrimaryRail() {
           }}
         />
 
-        {/* Sections */}
         {SECTIONS.map((section) => (
           <div key={section.key}>
-            {/* Section header — fixed SECTION_H height in both states */}
+            {/* Section header — fixed height in both states */}
             <div
               className="relative"
               style={{ height: SECTION_H, padding: "0 10px" }}
             >
-              {/* Label: visible when expanded */}
               <span
                 className="absolute inset-y-0 left-3 flex items-center text-[10px] font-normal uppercase tracking-widest text-text-secondary"
                 style={{
@@ -273,7 +275,6 @@ export default function PrimaryRail() {
                 {section.label}
               </span>
 
-              {/* Divider line: visible when collapsed, not for first section */}
               {section.showDivider && (
                 <div
                   className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border"
@@ -285,7 +286,7 @@ export default function PrimaryRail() {
               )}
             </div>
 
-            {/* Nav items */}
+            {/* Nav items — no tooltip here; tooltip is at aside level */}
             {section.items.map((item) => {
               const active = item.match
                 ? item.match(pathname)
@@ -313,6 +314,13 @@ export default function PrimaryRail() {
                       `border-radius 450ms ${EASE_OUT}`,
                     ].join(", "),
                   }}
+                  onMouseEnter={(e) => {
+                    if (!expanded) {
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      setTooltip({ label: item.label, y: rect.top + rect.height / 2 });
+                    }
+                  }}
+                  onMouseLeave={() => setTooltip(null)}
                 >
                   <Icon
                     size={20}
@@ -325,12 +333,9 @@ export default function PrimaryRail() {
                     }`}
                   />
 
-                  {/* Label */}
                   <span
                     className={`truncate text-sm font-normal transition-colors duration-200 ${
-                      active
-                        ? "text-white"
-                        : "text-text-secondary group-hover:text-text-primary"
+                      active ? "text-white" : "text-text-secondary group-hover:text-text-primary"
                     }`}
                     style={{
                       opacity:    expanded ? 1 : 0,
@@ -342,23 +347,30 @@ export default function PrimaryRail() {
                   >
                     {item.label}
                   </span>
-
-                  {/* Tooltip — shown on hover when collapsed */}
-                  <span
-                    className="pointer-events-none absolute left-[58px] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-normal text-text-primary opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100"
-                    style={{
-                      // Only render/interact with tooltip when collapsed
-                      visibility: expanded ? "hidden" : "visible",
-                    }}
-                  >
-                    {item.label}
-                  </span>
                 </Link>
               );
             })}
           </div>
         ))}
       </nav>
+
+      {/*
+        Tooltip rendered HERE at aside level — outside the overflow:hidden nav.
+        position:fixed so it's relative to the viewport, not clipped by anything.
+        Only visible when collapsed and an item is hovered.
+      */}
+      {!expanded && tooltip && (
+        <span
+          className="pointer-events-none fixed z-50 whitespace-nowrap rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-normal text-text-primary shadow-sm"
+          style={{
+            left:      COLLAPSED_W + 8,
+            top:       tooltip.y,
+            transform: "translateY(-50%)",
+          }}
+        >
+          {tooltip.label}
+        </span>
+      )}
     </aside>
   );
 }
