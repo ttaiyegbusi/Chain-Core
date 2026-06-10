@@ -1,5 +1,18 @@
 :root { --rail-width: 72px; }
 
+/* Content panes that offset by the rail width slide in sync with the rail. */
+main[class*="var(--rail-width)"],
+aside[class*="var(--rail-width)"] {
+  transition: margin-left 450ms cubic-bezier(0.3, 0.8, 0.4, 1),
+              left 450ms cubic-bezier(0.3, 0.8, 0.4, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  main[class*="var(--rail-width)"],
+  aside[class*="var(--rail-width)"] {
+    transition: none;
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

@@ -9,7 +9,7 @@ export default function GLDetailPage({
   return (
     <Suspense
       fallback={
-        <div className="ml-[66px] p-10 text-sm text-text-muted">Loading…</div>
+        <div className="ml-[var(--rail-width)] p-10 text-sm text-text-muted">Loading…</div>
       }
     >
       <GLDetailClient accountId={params.accountId} />

@@ -4,7 +4,7 @@ import FeatureComingSoon from "@/components/FeatureComingSoon";
 export default function ReportsComingSoonPage() {
   return (
     <div className="min-h-screen bg-white">
-      <main className="ml-[66px]">
+      <main className="ml-[var(--rail-width)]">
         <GlobalHeader title="Reports" crumbs={[{ label: "Reports" }]} />
         <FeatureComingSoon
           featureName="Reports"

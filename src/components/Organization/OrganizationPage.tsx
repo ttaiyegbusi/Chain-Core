@@ -15,7 +15,6 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import OrganizationSidebar from "./OrganizationSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import { CanvasPageSkeleton, PageTransition } from "@/components/LoadingStates";
@@ -258,7 +257,6 @@ export default function OrganizationPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <OrganizationSidebar />
       <main className="ml-[calc(var(--rail-width)+250px)]">
         <GlobalHeader

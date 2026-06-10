@@ -53,7 +53,7 @@ export default function CreateGLPage() {
     <div className="min-h-screen bg-white">
 
       {/* Content offset: just the 66px rail (sidebar hidden on create) */}
-      <main className="ml-[66px] pb-[90px]">
+      <main className="ml-[var(--rail-width)] pb-[90px]">
         {/* Top title bar */}
         <header className="flex h-[70px] items-center border-b border-border px-10">
           <h1 className="text-lg font-semibold text-text-primary">

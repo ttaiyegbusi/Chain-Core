@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, User2, Building2, Home, Users } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import ClientsSidebar from "@/components/ClientsSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import { Client, ClientType } from "@/data/clients";
@@ -107,7 +106,6 @@ export default function ClientProfilePage({ client, type, missingId }: { client?
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <ClientsSidebar menuLabel="SUB MENU" />
       <main className="ml-[calc(var(--rail-width)+250px)]">
         <GlobalHeader title={PAGE_TITLE[type]} />

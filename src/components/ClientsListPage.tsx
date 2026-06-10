@@ -13,7 +13,6 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import ClientsSidebar from "@/components/ClientsSidebar";
 import GlobalHeader from "@/components/GlobalHeader";
 import ClientsTable, { StatusTabs } from "@/components/ClientsTable";
@@ -106,7 +105,6 @@ export default function ClientsListPage({
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
       <ClientsSidebar menuLabel="SUB MENU" />
 
       <main className="ml-[calc(var(--rail-width)+250px)]">

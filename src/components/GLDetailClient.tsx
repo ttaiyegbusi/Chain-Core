@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, MoreVertical } from "lucide-react";
-import PrimaryRail from "@/components/PrimaryRail";
 import { Breadcrumbs } from "@/components/Common";
 import {
   TextInput,
@@ -44,8 +43,7 @@ export default function GLDetailClient({ accountId }: { accountId: string }) {
   if (!account) {
     return (
       <div className="min-h-screen bg-white">
-        <PrimaryRail />
-        <main className="ml-[66px] p-10">
+        <main className="ml-[var(--rail-width)] p-10">
           <p className="text-sm text-text-muted">Account not found.</p>
           <button
             onClick={() => router.push("/accounting/charts-of-account")}
@@ -62,9 +60,8 @@ export default function GLDetailClient({ accountId }: { accountId: string }) {
 
   return (
     <div className="min-h-screen bg-white">
-      <PrimaryRail />
 
-      <main className="ml-[66px] pb-[90px]">
+      <main className="ml-[var(--rail-width)] pb-[90px]">
         {/* Top title bar */}
         <header className="flex h-[70px] items-center px-10">
           <h1 className="text-lg font-semibold text-text-primary">{title}</h1>
