@@ -1,12 +1,40 @@
 "use client";
 
-import { Home, Layers, Contact, Euro, Network, PanelLeftClose } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  Home,
+  Layers,
+  Info,
+  Contact,
+  CreditCard,
+  FileText,
+  Euro,
+  Settings,
+  PanelLeftClose,
+} from "lucide-react";
+import { useMemo, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Logo from "./Logo";
 
-interface RailIcon {
+/* ─── Layout constants ────────────────────────────────────────────────────── */
+const COLLAPSED_W = 72;
+const EXPANDED_W  = 280;
+
+/**
+ * SECTION_H and ITEM_H are IDENTICAL in both expanded and collapsed states.
+ * Section headers swap their content (text ↔ line) but keep the same height.
+ * This means every item's Y position is the same regardless of rail state —
+ * so the indicator never jumps or needs to re-calculate on toggle.
+ */
+const SECTION_H   = 28;   // section header row height (both states)
+const ITEM_H      = 48;   // nav item height (both states)
+const NAV_PAD_TOP = 6;    // top padding in nav body
+
+const EASE_OUT   = "cubic-bezier(0.3, 0.8, 0.4, 1)";
+const EASE_INOUT = "cubic-bezier(0.4, 0, 0.2, 1)";
+
+/* ─── Nav structure ───────────────────────────────────────────────────────── */
+interface NavItem {
   key: string;
   label: string;
   icon: React.ElementType;
@@ -14,80 +42,121 @@ interface RailIcon {
   match?: (path: string) => boolean;
 }
 
-const COLLAPSED_WIDTH = 72;
-const EXPANDED_WIDTH = 280;
+interface NavSection {
+  key: string;
+  label: string;
+  /** Show a divider line in collapsed state (false for first section) */
+  showDivider: boolean;
+  items: NavItem[];
+}
 
-// Consistent sizing: icons stay same size in both states
-const ITEM_HEIGHT = 52;
-const ITEM_GAP = 8;
-const ITEM_STEP = ITEM_HEIGHT + ITEM_GAP;
-
-// Premium easing: smooth, no overshoot
-const EASE_OUT = "cubic-bezier(0.3, 0.8, 0.4, 1)";
-const EASE_INOUT = "cubic-bezier(0.4, 0, 0.2, 1)";
-
-const ICONS: RailIcon[] = [
-  { key: "home", label: "Dashboard", icon: Home, href: "/" },
+const SECTIONS: NavSection[] = [
   {
-    key: "organization",
-    label: "Organization",
-    icon: Network,
-    href: "/organization/structure",
-    match: (p) => p.startsWith("/organization"),
+    key: "menu",
+    label: "Menu",
+    showDivider: false, // no line before first group in collapsed
+    items: [
+      { key: "dashboard",    label: "Dashboard",    icon: Home,   href: "/" },
+      { key: "transactions", label: "Transactions", icon: Layers, href: "/transactions" },
+      { key: "task",         label: "Task",         icon: Info,   href: "/task" },
+    ],
   },
   {
-    key: "products",
-    label: "Products",
-    icon: Layers,
-    href: "/products",
-    match: (p) => p.startsWith("/products"),
+    key: "functions",
+    label: "Functions",
+    showDivider: true,
+    items: [
+      {
+        key: "clients",
+        label: "Clients",
+        icon: Contact,
+        href: "/clients/individual",
+        match: (p) => p.startsWith("/clients"),
+      },
+      { key: "accounts",       label: "Accounts",       icon: CreditCard, href: "/accounts" },
+      { key: "reports",        label: "Reports",        icon: FileText,   href: "/reports" },
+      {
+        key: "accounting",
+        label: "Accounting",
+        icon: Euro,
+        href: "/accounting/charts-of-account",
+        match: (p) => p.startsWith("/accounting"),
+      },
+      {
+        key: "administration",
+        label: "Administration",
+        icon: Settings,
+        href: "/organization/structure",
+        match: (p) => p.startsWith("/organization"),
+      },
+    ],
   },
   {
-    key: "clients",
-    label: "Clients",
-    icon: Contact,
-    href: "/clients/individual",
-    match: (p) => p.startsWith("/clients"),
-  },
-  {
-    key: "accounting",
-    label: "Accounting",
-    icon: Euro,
-    href: "/accounting/charts-of-account",
-    match: (p) => p.startsWith("/accounting"),
+    key: "settings",
+    label: "Settings",
+    showDivider: true,
+    items: [
+      { key: "settings-reports", label: "Reports",        icon: FileText, href: "/settings/reports" },
+      { key: "settings-admin",   label: "Administration", icon: Settings, href: "/settings/administration" },
+    ],
   },
 ];
 
+/* ─── Pre-compute item Y positions ───────────────────────────────────────── */
+/**
+ * Since SECTION_H and ITEM_H are fixed and equal in both rail states,
+ * these Y offsets are static constants — no DOM measurement needed,
+ * no recalculation on toggle, no risk of layout shift.
+ */
+const ITEM_TOP: Record<string, number> = (() => {
+  const map: Record<string, number> = {};
+  let y = NAV_PAD_TOP;
+  SECTIONS.forEach((section) => {
+    y += SECTION_H;
+    section.items.forEach((item) => {
+      map[item.key] = y;
+      y += ITEM_H;
+    });
+  });
+  return map;
+})();
+
+/* ─── Helper ──────────────────────────────────────────────────────────────── */
+function findActiveKey(pathname: string): string {
+  for (const section of SECTIONS) {
+    for (const item of section.items) {
+      if (item.match ? item.match(pathname) : item.href === pathname) {
+        return item.key;
+      }
+    }
+  }
+  return "dashboard";
+}
+
+/* ─── Component ───────────────────────────────────────────────────────────── */
 export default function PrimaryRail() {
-  const pathname = usePathname() || "/";
+  const pathname  = usePathname() || "/";
   const [expanded, setExpanded] = useState(false);
-  const width = expanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH;
+  const width     = expanded ? EXPANDED_W : COLLAPSED_W;
+  const activeKey = useMemo(() => findActiveKey(pathname), [pathname]);
 
-  const activeIndex = useMemo(() => {
-    const index = ICONS.findIndex((item) => (item.match ? item.match(pathname) : item.href === pathname));
-    return index >= 0 ? index : 0;
-  }, [pathname]);
-
+  // Restore persisted state and sync CSS variable
   useEffect(() => {
-    const saved = window.localStorage.getItem("chaincore-primary-nav-expanded");
-    const shouldExpand = saved === "true";
-    setExpanded(shouldExpand);
+    const saved  = localStorage.getItem("chaincore-primary-nav-expanded");
+    const should = saved === "true";
+    setExpanded(should);
     document.documentElement.style.setProperty(
       "--rail-width",
-      `${shouldExpand ? EXPANDED_WIDTH : COLLAPSED_WIDTH}px`,
+      `${should ? EXPANDED_W : COLLAPSED_W}px`,
     );
   }, []);
 
   useEffect(() => {
     document.documentElement.style.setProperty("--rail-width", `${width}px`);
-    window.localStorage.setItem("chaincore-primary-nav-expanded", String(expanded));
+    localStorage.setItem("chaincore-primary-nav-expanded", String(expanded));
   }, [expanded, width]);
 
-  // Indicator position: consistent step size regardless of state
-  const indicatorY = activeIndex * ITEM_STEP;
-  const indicatorWidth = expanded ? "calc(100% - 24px)" : "52px";
-  const indicatorRadius = expanded ? "14px" : "18px";
-  const indicatorLeft = expanded ? "12px" : "10px";
+  const indicatorTop = ITEM_TOP[activeKey] ?? NAV_PAD_TOP;
 
   return (
     <aside
@@ -99,119 +168,188 @@ export default function PrimaryRail() {
         transition: `width 450ms ${EASE_OUT}`,
       }}
       aria-label="Primary navigation"
-      data-expanded={expanded ? "true" : "false"}
     >
-      {/* Header: Logo + Brand */}
-      <div className="relative flex h-[88px] w-full items-center justify-center">
+      {/* ── Header ──────────────────────────────────────────────────────── */}
+      <div className="relative flex h-[72px] shrink-0 items-center gap-3 px-4">
+        {/* Logo — clicks to expand when collapsed */}
         <button
           type="button"
           aria-label={expanded ? "ChainCore" : "Expand navigation"}
           onClick={() => !expanded && setExpanded(true)}
-          className={[
-            "focus-ring flex min-w-0 items-center rounded-2xl text-left transition-colors duration-300",
-            expanded ? "h-12 w-[calc(100%-32px)] justify-start gap-3 px-2 hover:bg-surface-muted" : "h-12 w-12 justify-center p-0",
-          ].join(" ")}
+          className="focus-ring flex h-10 w-10 shrink-0 items-center justify-center"
         >
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center">
-            <Logo size={40} />
-          </span>
-          {expanded ? (
-            <span
-              className="min-w-0 truncate text-sm font-semibold text-primary transition-opacity duration-300"
-              style={{ opacity: expanded ? 1 : 0 }}
-            >
-              ChainCore
-            </span>
-          ) : null}
+          <Logo size={40} />
         </button>
 
-        {expanded ? (
-          <button
-            type="button"
-            aria-label="Collapse navigation"
-            onClick={() => setExpanded(false)}
-            className="focus-ring absolute right-3 top-7 flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary transition-colors duration-300 hover:bg-surface-muted hover:text-text-primary"
-          >
-            <PanelLeftClose size={18} strokeWidth={1.9} aria-hidden />
-          </button>
-        ) : null}
+        {/* Brand name — fades in when expanded */}
+        <span
+          aria-hidden
+          className="truncate text-sm font-semibold text-primary"
+          style={{
+            opacity:     expanded ? 1 : 0,
+            maxWidth:    expanded ? "150px" : "0px",
+            overflow:    "hidden",
+            whiteSpace:  "nowrap",
+            pointerEvents: "none",
+            transition:  `opacity ${expanded ? "200ms 160ms" : "100ms 0ms"}, max-width 450ms ${EASE_OUT}`,
+          }}
+        >
+          ChainCore
+        </span>
+
+        {/* Collapse button — fades in when expanded */}
+        <button
+          type="button"
+          aria-label="Collapse navigation"
+          onClick={() => setExpanded(false)}
+          className="focus-ring absolute right-3 flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-muted hover:text-text-primary"
+          style={{
+            opacity:       expanded ? 1 : 0,
+            pointerEvents: expanded ? "auto" : "none",
+            transition:    `opacity ${expanded ? "200ms 220ms" : "100ms 0ms"}`,
+          }}
+        >
+          <PanelLeftClose size={18} strokeWidth={1.9} aria-hidden />
+        </button>
       </div>
 
-      {/* Navigation Items */}
+      {/* Divider under header */}
+      <div className="mx-3 h-px shrink-0 bg-border" />
+
+      {/* ── Nav Body ────────────────────────────────────────────────────── */}
       <nav
-        className={[
-          "relative flex flex-1 flex-col",
-          expanded ? "gap-2 px-3 pt-2" : "items-center gap-2 px-0 pt-2",
-        ].join(" ")}
+        className="relative flex-1 overflow-hidden"
+        style={{ paddingTop: NAV_PAD_TOP }}
+        aria-label="Main navigation"
       >
-        {/* Active Indicator: Smooth, consistent */}
+        {/*
+          Sliding indicator.
+          - top is pre-computed from the static ITEM_TOP map
+          - position is IDENTICAL in both expanded and collapsed states
+            because SECTION_H and ITEM_H never change
+          - Only border-radius animates with the rail width
+        */}
         <span
           aria-hidden
           className="pointer-events-none absolute z-0 bg-primary"
           style={{
-            left: indicatorLeft,
-            top: `${8 + indicatorY}px`,
-            width: indicatorWidth,
-            height: ITEM_HEIGHT,
-            borderRadius: indicatorRadius,
-            transition: `all 400ms ${EASE_INOUT}`,
+            top:          indicatorTop,
+            height:       ITEM_H,
+            left:         "10px",
+            right:        "10px",
+            borderRadius: expanded ? "14px" : "18px",
+            transition:   `top 400ms ${EASE_INOUT}, border-radius 450ms ${EASE_OUT}`,
           }}
         />
 
-        {/* Navigation Links */}
-        {ICONS.map((item) => {
-          const active = item.match ? item.match(pathname) : item.href === pathname;
-          const Icon = item.icon;
-
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              aria-label={item.label}
-              aria-current={active ? "page" : undefined}
-              prefetch
-              className={[
-                "focus-ring group relative z-10 flex transition-colors duration-300",
-                expanded
-                  ? "h-[52px] w-full rounded-[14px]"
-                  : "h-[52px] w-[52px] items-center justify-center rounded-[18px]",
-              ].join(" ")}
+        {/* Sections */}
+        {SECTIONS.map((section) => (
+          <div key={section.key}>
+            {/*
+              Section header row.
+              Always SECTION_H (28px) tall — no height change between states.
+              Content swaps: text (expanded) ↔ divider line (collapsed).
+              First section (Menu) has showDivider: false so it shows
+              empty space in collapsed mode, matching the design.
+            */}
+            <div
+              className="relative"
+              style={{ height: SECTION_H, padding: "0 10px" }}
             >
+              {/* Label — visible when expanded */}
               <span
-                className={[
-                  "flex h-full min-w-0 items-center rounded-[inherit] transition-colors duration-300",
-                  expanded ? "w-full justify-start gap-3 px-3" : "w-full justify-center",
-                  active ? "text-white" : "text-text-secondary group-hover:text-text-primary",
-                ].join(" ")}
+                className="absolute inset-y-0 left-3 flex items-center text-[10px] font-medium uppercase tracking-widest text-text-secondary"
+                style={{
+                  opacity:       expanded ? 1 : 0,
+                  pointerEvents: "none",
+                  whiteSpace:    "nowrap",
+                  transition:    `opacity ${expanded ? "160ms 130ms" : "100ms 0ms"}`,
+                }}
               >
-                {/* Icon: Consistent size */}
-                <Icon
-                  size={21}
-                  strokeWidth={1.9}
-                  aria-hidden
-                  className="shrink-0 transition-colors duration-300"
+                {section.label}
+              </span>
+
+              {/* Divider line — visible when collapsed, only for Functions & Settings */}
+              {section.showDivider && (
+                <div
+                  className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border"
+                  style={{
+                    opacity:    expanded ? 0 : 1,
+                    transition: `opacity ${expanded ? "100ms 0ms" : "160ms 130ms"}`,
+                  }}
                 />
-                
-                {/* Label: Smooth fade */}
-                {expanded ? (
+              )}
+            </div>
+
+            {/* Nav items */}
+            {section.items.map((item) => {
+              const active = item.match
+                ? item.match(pathname)
+                : item.href === pathname;
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  aria-label={item.label}
+                  aria-current={active ? "page" : undefined}
+                  prefetch
+                  className="focus-ring group relative z-10 flex items-center"
+                  style={{
+                    height:         ITEM_H,
+                    margin:         "0 10px",
+                    padding:        expanded ? "0 10px" : "0",
+                    justifyContent: expanded ? "flex-start" : "center",
+                    gap:            expanded ? "12px" : "0",
+                    borderRadius:   expanded ? "14px" : "18px",
+                    transition:     [
+                      `padding 450ms ${EASE_OUT}`,
+                      `gap 450ms ${EASE_OUT}`,
+                      `border-radius 450ms ${EASE_OUT}`,
+                    ].join(", "),
+                  }}
+                >
+                  <Icon
+                    size={20}
+                    strokeWidth={1.9}
+                    aria-hidden
+                    className={`shrink-0 transition-colors duration-200 ${
+                      active
+                        ? "text-white"
+                        : "text-text-secondary group-hover:text-text-primary"
+                    }`}
+                  />
+
+                  {/* Label — fades in when expanded */}
                   <span
-                    className="min-w-0 truncate text-sm font-medium transition-opacity duration-300"
-                    style={{ opacity: expanded ? 1 : 0 }}
+                    className={`truncate text-sm font-medium transition-colors duration-200 ${
+                      active
+                        ? "text-white"
+                        : "text-text-secondary group-hover:text-text-primary"
+                    }`}
+                    style={{
+                      opacity:    expanded ? 1 : 0,
+                      maxWidth:   expanded ? "160px" : "0px",
+                      overflow:   "hidden",
+                      whiteSpace: "nowrap",
+                      transition: `opacity ${expanded ? "200ms 100ms" : "100ms 0ms"}, max-width 450ms ${EASE_OUT}`,
+                    }}
                   >
                     {item.label}
                   </span>
-                ) : null}
-              </span>
 
-              {/* Tooltip: Appears on hover when collapsed */}
-              {!expanded ? (
-                <span className="pointer-events-none absolute left-[62px] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-medium text-text-primary opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100">
-                  {item.label}
-                </span>
-              ) : null}
-            </Link>
-          );
-        })}
+                  {/* Tooltip — only rendered in collapsed state */}
+                  {!expanded && (
+                    <span className="pointer-events-none absolute left-[58px] top-1/2 z-50 -translate-y-1/2 whitespace-nowrap rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-medium text-text-primary opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100">
+                      {item.label}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
     </aside>
   );
